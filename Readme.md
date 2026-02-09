@@ -32,8 +32,11 @@ python -m venv venv
 source venv/bin/activate
 ```
 ### 2. Instalar dependencias
-Instalar las librerías necesarias especificadas en el archivo de requerimientos:
+Es una buena práctica actualizar el gestor de paquetes antes de instalar las librerías del proyecto:
 ```bash
+# Actualizar pip a la última versión
+python.exe -m pip install --upgrade pip
+# Instalar librerías del proyecto
 pip install -r requirements.txt
 ```
 Las dependencias principales incluyen langchain, sentence-transformers, faiss-cpu, y openai==0.28.0.
