@@ -40,7 +40,7 @@ def main():
         retriever=vector_db.as_retriever(search_kwargs={"k": 4}) 
     )
 
-    print("🤖 Chatbot de Ventas Local (Ollama))
+    print("🤖 Chatbot de Ventas Local (Ollama)")
     while True:
         pregunta = input("> ¿Qué quieres saber de las ventas? ").strip()
         if pregunta.lower() in ("salir", "exit", "quit"):
