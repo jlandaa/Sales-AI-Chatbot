@@ -1,73 +1,58 @@
 #!/usr/bin/env python3
 from dotenv import load_dotenv
 import os
-import openai
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama  # Importación para modelo local
 from langchain.chains import RetrievalQA
-
-def respuesta_local(q, ventas):
-    q = q.lower()
-    if "menos ventas" in q:
-        p, v = min(ventas.items(), key=lambda x: x[1])
-        return f"El producto con menos ventas fue {p}, con {v} unidades vendidas."
-    if "más ventas" in q or "mayor venta" in q:
-        p, v = max(ventas.items(), key=lambda x: x[1])
-        return f"El producto con más ventas fue {p}, con {v} unidades vendidas."
-    return None
 
 def main():
     load_dotenv()
-    API_KEY = os.getenv("OPENAI_API_KEY")
-    if not API_KEY:
-        print("❗️ Define OPENAI_API_KEY en .env")
-        return
+    
+    # 1. Datos dinámicos 
+    ventas = {
+        "Zapatos": 120, 
+        "Camisetas": 75, 
+        "Pantalones": 50, 
+        "Sombreros": 30,
+        "Medias": 200  
+    }
+    
+    # Convertimos los datos en "Documentos" para el motor de búsqueda
+    docs = [f"El producto {p} tiene un total de {v} unidades vendidas." for p, v in ventas.items()]
 
-    # Datos de ventas
-    ventas = {"Zapatos": 120, "Camisetas": 75, "Pantalones": 50, "Sombreros": 30}
-    docs = [f"Producto: {p}, Ventas: {v}" for p, v in ventas.items()]
-
-    # 1. Embeddings locales actualizados
+    # 2. Embeddings y Vector Store (Locales)
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    index = FAISS.from_texts(docs, embeddings)
+    vector_db = FAISS.from_texts(docs, embeddings)
 
-    # 2. LLM actualizado (ChatOpenAI es mejor para gpt-3.5-turbo)
-    llm = ChatOpenAI(
-        model="gpt-3.5-turbo",
-        temperature=0,
-        api_key=API_KEY,
-        max_retries=0
+    # 3. LLM Local con Ollama (Adiós a la cuota de OpenAI)
+    # Asegúrate de haber hecho: ollama pull llama3.2:1b
+    llm = ChatOllama(
+        model="llama3.2:1b",
+        temperature=0 # Queremos precisión, no creatividad
     )
 
-    # 3. Cadena de recuperación
+    # 4. Cadena de RAG
+    # k=4 permite que el modelo vea todos los productos para comparar máximos/mínimos
     qa = RetrievalQA.from_chain_type(
         llm=llm,
         chain_type="stuff",
-        retriever=index.as_retriever(search_kwargs={"k": 1})
+        retriever=vector_db.as_retriever(search_kwargs={"k": 4}) 
     )
 
-    print("🤖 Chatbot de Ventas (escribe 'salir' para terminar)")
+    print("🤖 Chatbot de Ventas Local (Ollama))
     while True:
         pregunta = input("> ¿Qué quieres saber de las ventas? ").strip()
         if pregunta.lower() in ("salir", "exit", "quit"):
             print("👋 ¡Hasta luego!")
             break
 
-        # Lógica Local
-        resp = respuesta_local(pregunta, ventas)
-        if resp:
-            print("💡", resp)
-            continue
-
-        # Lógica LLM con manejo de errores moderno
         try:
+            # El LLM ahora recibe la pregunta + los datos de FAISS y deduce la respuesta
             res = qa.invoke({"query": pregunta})
             print("💡", res["result"])
-        except openai.RateLimitError:
-            print("⚠️ No se puede consultar a OpenAI, se acabó la cuota.")
         except Exception as e:
-            print(f"⚠️ Ocurrió un error inesperado: {e}")
+            print(f"⚠️ Error: {e}")
 
 if __name__ == "__main__":
     main()
