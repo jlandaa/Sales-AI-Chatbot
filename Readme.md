@@ -1,67 +1,114 @@
-# Sales Chatbot: Híbrido RAG & Lógica Local 🤖
+# 🤖 Chatbot de Ventas BI - Motor Text-to-SQL
 
-Este proyecto es un chatbot de ventas inteligente desarrollado en Python. Su principal ventaja es su **enfoque híbrido**: combina una capa de **lógica determinista local** para cálculos de alto rendimiento con una capa de **Generación Aumentada por Recuperación (RAG)** para consultas semánticas complejas.
+Este proyecto es un asistente de Business Intelligence impulsado por Inteligencia Artificial que permite a los usuarios consultar un reporte de ventas utilizando lenguaje natural. El sistema actúa como un "traductor" que convierte preguntas coloquiales en consultas SQL precisas, ejecutándolas contra una base de datos en memoria para devolver resultados matemáticamente exactos.
 
+## 🚀 ¿Qué resuelve este proyecto?
+En entornos corporativos, los equipos de negocio necesitan respuestas rápidas sobre sus datos sin depender constantemente del equipo de analistas para escribir consultas SQL. Este chatbot democratiza el acceso a la información de ventas garantizando **cero alucinaciones**, ya que el LLM no genera la respuesta final de forma generativa, sino que escribe el código SQL exacto que extrae el dato real de la base de datos.
 
+## ⚙️ ¿Cómo funciona?
+
+El flujo de trabajo (Pipeline) se compone de los siguientes pasos:
+
+1. **Ingesta de Datos:** Se lee un archivo `ventas.csv` utilizando Pandas y se carga dinámicamente en una base de datos SQLite en memoria (`sqlite3`).
+2. **Procesamiento del Lenguaje:** Se utiliza **LangChain** para gestionar el flujo y conectar con un modelo local (**Llama 3.2 3B** vía **Ollama**).
+3. **Prompt Engineering & Guardarraíles:** El LLM recibe un *system prompt* estricto que define la estructura de la tabla, reglas de negocio (taxonomías como "Ropa" o "Calzado") y directivas de seguridad (Out-of-Domain) para evitar respuestas fuera del contexto comercial.
+4. **Ejecución y Respuesta:** El modelo devuelve únicamente código SQL válido. El script ejecuta esta query en la base de datos SQLite y retorna el dato exacto al usuario final.
+
+## 🛠️ Tecnologías Utilizadas
+* **Python 3**
+* **LangChain** (Orquestación del LLM)
+* **Ollama / Llama 3.2** (Modelo de lenguaje local)
+* **Pandas & SQLite3** (Manipulación y almacenamiento de datos en memoria)
 
 ---
 
-## 🚀 Características
+## 📁 Estructura del Proyecto
 
-* **Procesamiento Inteligente:**
-    * **Capa Local:** Identifica instantáneamente consultas sobre "máximos" o "mínimos" de ventas, respondiendo sin latencia ni consumo de tokens.
-    * **Capa AI (RAG):** Utiliza LangChain para interpretar el catálogo y responder sobre productos específicos de forma conversacional.
-* **Stack Tecnológico:**
-    * **Embeddings:** `all-MiniLM-L6-v2` (SentenceTransformers) para procesamiento vectorial local.
-    * **Base de Datos Vectorial:** FAISS para búsquedas de similitud ultra rápidas.
-    * **LLM:** OpenAI (`gpt-3.5-turbo`) configurado para máxima precisión.
-* **Gestión de Errores:** Manejo nativo de `RateLimitError` para prevenir caídas por límites de cuota en la API de OpenAI.
+Asegúrate de tener los siguientes archivos en tu directorio:
+* `chatbot.py`: El script principal con la lógica de LangChain y SQLite.
+* `ventas.csv`: El dataset de origen con las columnas `Producto` y `Unidades_Vendidas`.
+* `requirements.txt`: El listado de dependencias de Python necesarias.
 
 ---
 
-## 🛠️ Requisitos e Instalación
+## 💻 Guía de Instalación y Uso paso a paso
 
-### 1. Preparar el entorno
-Se recomienda el uso de un entorno virtual para gestionar las dependencias:
+### Paso 1: Requisitos Previos
+1. Tener **Python 3.8+** instalado en tu sistema.
+2. Descargar e instalar [Ollama](https://ollama.com/).
+3. Descargar el modelo Llama 3.2. Abre tu terminal y ejecuta:
+   ```bash
+   ollama run llama3.2
+   ```
 
-```bash
+###   Paso 2: Preparar el Entorno
+1. Clona este repositorio o crea una carpeta con los archivos del proyecto.
+
+2. Es una buena práctica crear un entorno virtual. En tu terminal, dentro de la carpeta del proyecto, ejecuta:
+  ```bash
 python -m venv venv
-# Activar en Windows:
-.\venv\Scripts\activate
-# Activar en macOS/Linux:
-source venv/bin/activate
-```
-### 2. Instalar dependencias
-Es una buena práctica actualizar el gestor de paquetes antes de instalar las librerías del proyecto:
-```bash
-# Actualizar pip a la última versión
-python.exe -m pip install --upgrade pip
-# Instalar librerías del proyecto
+   ```
+3. Activa el entorno virtual:
+
+Windows: venv\Scripts\activate
+
+Mac/Linux: source venv/bin/activate
+
+
+### Paso 3: Instalar Dependencias
+Con el entorno virtual activado, instala las librerías necesarias ejecutando:
+  ```bash
 pip install -r requirements.txt
-```
-Las dependencias principales incluyen langchain, sentence-transformers, faiss-cpu, y openai==0.28.0.
+   ```
 
-### 3. Configuración
-El sistema requiere una clave de API de OpenAI para funcionar.
-Crea un archivo .env en el directorio raíz.
-Añade tu clave siguiendo este formato:
-```
-OPENAI_API_KEY=tu_api_key_aqui
-```
-
-
-### 4. Instrucciones de Uso
-Para iniciar el chatbot, ejecuta el archivo principal:
-```bash
+###    Paso 4: Ejecutar el Chatbot
+Asegúrate de que Ollama esté corriendo en segundo plano y ejecuta el script principal:
+  ```bash
 python chatbot.py
-```
+   ```
 
-Ejemplos de Interacción:
-* Pregunta local: "¿Qué producto tuvo menos ventas?" (El script detecta la palabra clave y responde sin consultar la IA) .
-* Pregunta RAG: "¿Cuántos zapatos se vendieron?" (El sistema busca en el índice FAISS y el LLM genera la respuesta) .
-* Salir: Escribe salir, exit o quit para cerrar la sesión.
+¡Listo! El chatbot iniciará en la terminal y podrás empezar a interactuar con los datos.
 
-### 5. Estructura del Proyecto
-* chatbot.py: Script principal con la lógica del chatbot y la cadena RAG.
-* requirements.txt: Lista de librerías y versiones compatibles.
-* .env: Archivo de configuración para variables de entorno (no incluido por seguridad).
+
+**🧪Casos de Prueba (Testing)**
+El modelo ha sido sometido a rigurosas pruebas de calidad para garantizar su viabilidad en un entorno analítico corporativo:
+
+**1. Pruebas de Comparación y Lógica SQL**
+Evalúa la capacidad de generar agregaciones, ordenamientos y límites correctos.
+
+**Q:** "¿Cuál es el segundo producto más vendido después de las Medias?" * Resultado esperado: Retorna los Zapatos (120 unidades).
+
+**Q:** "¿Qué productos vendieron menos de 40 unidades?"
+
+**Resultado esperado:** Sombreros (30) y Camperas (15).
+
+**2. Pruebas de Variación Lingüística y Taxonomía**
+Verifica que el modelo aplique reglas de negocio y entienda sinónimos.
+
+**Q:** "¿Cuál es el stock de calzado?"
+
+**Resultado esperado:** Traduce "calzado" a "Zapatos" y "Medias" mediante la regla del prompt.
+
+**Q:** "¿Qué es lo que menos salió?"
+
+**Resultado esperado:** Identifica "salió" como "vendió" y ordena ascendentemente.
+
+**3. Integridad y Seguridad (Out-of-Domain / Cero Alucinaciones)**
+Garantiza que el bot no invente datos ni se desvíe de su propósito comercial.
+
+**Q:** "¿Cuántos cinturones se vendieron?"
+
+**Resultado esperado:** El sistema indica que no hay resultados o dato no encontrado.
+
+**Q:** "¿Cuál es el clima de hoy?"
+
+**Resultado esperado:** Se activa el guardarraíl devolviendo: "Lo siento, como Analista de BI solo puedo responder preguntas sobre el reporte de ventas."
+
+**4. Prueba de Actualización Dinámica**
+Al basarse en consultas SQL directas y no en conocimiento pre-entrenado, el sistema responde a cambios en tiempo real.
+
+**Acción:** Cierra el bot, agrega la línea Gorras,450 al archivo ventas.csv, y vuelve a ejecutar.
+
+**Q:** "¿Cuál es el producto más vendido?"
+
+**Resultado esperado:** El bot identifica inmediatamente a las Gorras como el nuevo producto principal con 450 unidades.
