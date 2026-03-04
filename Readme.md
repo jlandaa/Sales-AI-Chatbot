@@ -50,10 +50,15 @@ python -m venv venv
    ```
 3. Activa el entorno virtual:
 
-Windows: venv\Scripts\activate
+- Windows: 
+ ```bash
+venv\Scripts\activate
+ ```
 
-Mac/Linux: source venv/bin/activate
-
+- Mac/Linux:
+ ```bash
+source venv/bin/activate
+ ```
 
 ### Paso 3: Instalar Dependencias
 Con el entorno virtual activado, instala las librerías necesarias ejecutando:
@@ -76,39 +81,39 @@ El modelo ha sido sometido a rigurosas pruebas de calidad para garantizar su via
 **1. Pruebas de Comparación y Lógica SQL**
 Evalúa la capacidad de generar agregaciones, ordenamientos y límites correctos.
 
-**Q:** "¿Cuál es el segundo producto más vendido después de las Medias?" * Resultado esperado: Retorna los Zapatos (120 unidades).
+* **Q:** "¿Cuál es el segundo producto más vendido después de las Medias?" * Resultado esperado: Retorna los Zapatos (120 unidades).
 
-**Q:** "¿Qué productos vendieron menos de 40 unidades?"
+* **Q:** "¿Qué productos vendieron menos de 40 unidades?"
 
-**Resultado esperado:** Sombreros (30) y Camperas (15).
+* **Resultado esperado:** Sombreros (30) y Camperas (15).
 
 **2. Pruebas de Variación Lingüística y Taxonomía**
 Verifica que el modelo aplique reglas de negocio y entienda sinónimos.
 
-**Q:** "¿Cuál es el stock de calzado?"
+* **Q:** "¿Cuál es el stock de calzado?"
 
-**Resultado esperado:** Traduce "calzado" a "Zapatos" y "Medias" mediante la regla del prompt.
+* **Resultado esperado:** Traduce "calzado" a "Zapatos" y "Medias" mediante la regla del prompt.
 
-**Q:** "¿Qué es lo que menos salió?"
+* **Q:** "¿Qué es lo que menos salió?"
 
-**Resultado esperado:** Identifica "salió" como "vendió" y ordena ascendentemente.
+* **Resultado esperado:** Identifica "salió" como "vendió" y ordena ascendentemente.
 
 **3. Integridad y Seguridad (Out-of-Domain / Cero Alucinaciones)**
 Garantiza que el bot no invente datos ni se desvíe de su propósito comercial.
 
-**Q:** "¿Cuántos cinturones se vendieron?"
+* **Q:** "¿Cuántos cinturones se vendieron?"
 
-**Resultado esperado:** El sistema indica que no hay resultados o dato no encontrado.
+* **Resultado esperado:** El sistema indica que no hay resultados o dato no encontrado.
 
-**Q:** "¿Cuál es el clima de hoy?"
+* **Q:** "¿Cuál es el clima de hoy?"
 
-**Resultado esperado:** Se activa el guardarraíl devolviendo: "Lo siento, como Analista de BI solo puedo responder preguntas sobre el reporte de ventas."
+* **Resultado esperado:** Se activa el guardarraíl devolviendo: "Lo siento, como Analista de BI solo puedo responder preguntas sobre el reporte de ventas."
 
 **4. Prueba de Actualización Dinámica**
 Al basarse en consultas SQL directas y no en conocimiento pre-entrenado, el sistema responde a cambios en tiempo real.
 
-**Acción:** Cierra el bot, agrega la línea Gorras,450 al archivo ventas.csv, y vuelve a ejecutar.
+* **Acción:** Cierra el bot, agrega la línea Gorras,450 al archivo ventas.csv, y vuelve a ejecutar.
 
-**Q:** "¿Cuál es el producto más vendido?"
+* **Q:** "¿Cuál es el producto más vendido?"
 
-**Resultado esperado:** El bot identifica inmediatamente a las Gorras como el nuevo producto principal con 450 unidades.
+* **Resultado esperado:** El bot identifica inmediatamente a las Gorras como el nuevo producto principal con 450 unidades.
