@@ -11,7 +11,7 @@ El flujo de trabajo (Pipeline) se compone de los siguientes pasos:
 
 1. **Ingesta de Datos:** Se lee un archivo `ventas.csv` utilizando Pandas y se carga dinámicamente en una base de datos SQLite en memoria (`sqlite3`).
 2. **Procesamiento del Lenguaje:** Se utiliza **LangChain** para gestionar el flujo y conectar con un modelo local (**Llama 3.2 3B** vía **Ollama**).
-3. **Prompt Engineering & Guardarraíles:** El LLM recibe un *system prompt* estricto que define la estructura de la tabla, reglas de negocio (taxonomías como "Ropa" o "Calzado") y directivas de seguridad (Out-of-Domain) para evitar respuestas fuera del contexto comercial.
+3. **Prompt Engineering** El LLM recibe un *system prompt* estricto que define la estructura de la tabla, reglas de negocio (taxonomías como "Ropa" o "Calzado") y directivas de seguridad (Out-of-Domain) para evitar respuestas fuera del contexto comercial.
 4. **Ejecución y Respuesta:** El modelo devuelve únicamente código SQL válido. El script ejecuta esta query en la base de datos SQLite y retorna el dato exacto al usuario final.
 
 ## 🛠️ Tecnologías Utilizadas
