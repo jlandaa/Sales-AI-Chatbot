@@ -6,3 +6,4 @@ langchain-huggingface
 langchain-ollama
 faiss-cpu
 sentence-transformers
+streamlit
