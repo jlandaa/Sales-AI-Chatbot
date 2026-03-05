@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
-from langchain_ollama import ChatOllama
+from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
@@ -15,10 +15,16 @@ st.markdown("Sube tu reporte de ventas y consúltalo en lenguaje natural. El mod
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# 3. Inicializar el modelo y el prompt (Cacheado para no recargar en cada interacción)
+# 3. Inicializar el modelo y el prompt (Usando la nube gratuita de Groq)
 @st.cache_resource
 def init_chain():
-    llm = ChatOllama(model="llama3.2", temperature=0)
+    # Usamos Llama 3 a través de Groq y leemos la API Key de los secretos de Streamlit
+    llm = ChatGroq(
+        model="llama-3.1-8b-instant", 
+        temperature=0, 
+        api_key=st.secrets["GROQ_API_KEY"]
+    )
+    
     template = """Eres un Data Analyst experto en SQLite. 
     Tienes una tabla 'ventas' con dos columnas: 'Producto' (TEXT) y 'Unidades_Vendidas' (INTEGER).
     
@@ -50,12 +56,10 @@ sql_chain = init_chain()
 uploaded_file = st.file_uploader("Sube tu archivo de ventas (.csv)", type=["csv"])
 
 if uploaded_file is not None:
-    # Cargar datos a la sesión y crear la base de datos en memoria
     df = pd.read_csv(uploaded_file)
     conn = sqlite3.connect(':memory:')
     df.to_sql('ventas', conn, index=False, if_exists='replace')
     
-    # Mostrar una vista previa opcional de los datos
     with st.expander("Ver vista previa de los datos"):
         st.dataframe(df)
 
@@ -66,28 +70,22 @@ if uploaded_file is not None:
 
     # 6. Input del usuario
     if prompt := st.chat_input("Ej: ¿Cuál es el segundo producto más vendido?"):
-        # Agregar y mostrar mensaje del usuario
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Generar respuesta del asistente
         with st.chat_message("assistant"):
             with st.spinner("Traduciendo a SQL y analizando datos..."):
                 try:
-                    # Generar Query
                     query_generada = sql_chain.invoke({"pregunta": prompt}).strip()
                     query_generada = query_generada.replace("```sql", "").replace("```", "").strip()
                     
-                    # Mostrar la query generada (Excelente para demostrar cómo funciona por detrás)
                     st.code(query_generada, language="sql")
                     
-                    # Ejecutar Query
                     cursor = conn.cursor()
                     cursor.execute(query_generada)
                     resultados = cursor.fetchall()
                     
-                    # Formatear el resultado
                     if not resultados or resultados[0][0] is None:
                         respuesta = "No se encontraron resultados para esa consulta."
                     else:
@@ -95,7 +93,6 @@ if uploaded_file is not None:
                     
                     st.markdown(f"**Resultado:**\n{respuesta}")
                     
-                    # Guardar en el historial
                     st.session_state.messages.append({
                         "role": "assistant", 
                         "content": f"**Query ejecutada:**\n```sql\n{query_generada}\n```\n**Resultado:**\n{respuesta}"
