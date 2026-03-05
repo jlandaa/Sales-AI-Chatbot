@@ -3,8 +3,8 @@ pandas
 langchain
 langchain-community
 langchain-huggingface
-langchain-ollama --Para pruebas locales
-langchain-groq --para que quede 24/7 corriendo
+langchain-ollama
+langchain-groq
 faiss-cpu
 sentence-transformers
 streamlit
