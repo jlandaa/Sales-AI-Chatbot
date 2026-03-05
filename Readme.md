@@ -5,6 +5,9 @@ Este proyecto es un asistente de Business Intelligence impulsado por Inteligenci
 ## 🚀 ¿Qué resuelve este proyecto?
 En entornos corporativos, los equipos de negocio necesitan respuestas rápidas sobre sus datos sin depender constantemente del equipo de analistas para escribir consultas SQL. Este chatbot democratiza el acceso a la información de ventas garantizando **cero alucinaciones**, ya que el LLM no genera la respuesta final de forma generativa, sino que escribe el código SQL exacto que extrae el dato real de la base de datos.
 
+## Demo
+https://ventas-ai.streamlit.app/
+
 ## ⚙️ ¿Cómo funciona?
 
 El flujo de trabajo (Pipeline) se compone de los siguientes pasos:
@@ -117,3 +120,9 @@ Al basarse en consultas SQL directas y no en conocimiento pre-entrenado, el sist
 * **Q:** "¿Cuál es el producto más vendido?"
 
 * **Resultado esperado:** El bot identifica inmediatamente a las Gorras como el nuevo producto principal con 450 unidades.
+
+
+## APP Preview
+
+<img width="1387" height="1065" alt="Screenshot" src="https://github.com/user-attachments/assets/d2565005-9571-4978-9fc6-c661aa1aa2fb" />
+
