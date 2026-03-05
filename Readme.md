@@ -3,7 +3,7 @@
 Este proyecto es un asistente de Business Intelligence impulsado por Inteligencia Artificial que permite a los usuarios consultar un reporte de ventas utilizando lenguaje natural. El sistema actúa como un "traductor" que convierte preguntas coloquiales en consultas SQL precisas, ejecutándolas contra una base de datos en memoria para devolver resultados matemáticamente exactos.
 
 ## 🚀 ¿Qué resuelve este proyecto?
-En entornos corporativos, los equipos de negocio necesitan respuestas rápidas sobre sus datos sin depender constantemente del equipo de analistas para escribir consultas SQL. Este chatbot democratiza el acceso a la información de ventas garantizando minimizando drásticamente el riesgo de alucinaciones numéricas. Al utilizar una arquitectura Text-to-SQL, la respuesta final proviene exclusivamente de la base de datos y no de la generación creativa del modelo, asegurando la integridad de la información reportada.
+En entornos corporativos, los equipos de negocio necesitan respuestas rápidas sobre sus datos sin depender constantemente del equipo de analistas para escribir consultas SQL. Este chatbot democratiza el acceso a la información de ventas **minimizando drásticamente** el riesgo de alucinaciones numéricas. Al utilizar una arquitectura Text-to-SQL, la respuesta final proviene exclusivamente de la base de datos y no de la generación creativa del modelo, asegurando la integridad de la información reportada.
 
 ## 🔗 Demo en Vivo
 Puedes acceder a la demo interactiva aquí:  
