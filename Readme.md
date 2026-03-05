@@ -7,6 +7,7 @@ En entornos corporativos, los equipos de negocio necesitan respuestas rápidas s
 
 ## Demo
 https://ventas-ai.streamlit.app/
+(Cargar el archivo ventas.csv por ejemplo)
 
 ## ⚙️ ¿Cómo funciona?
 
