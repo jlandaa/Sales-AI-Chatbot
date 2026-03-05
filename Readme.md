@@ -6,7 +6,7 @@ Este proyecto es un asistente de Business Intelligence impulsado por Inteligenci
 En entornos corporativos, los equipos de negocio necesitan respuestas rápidas sobre sus datos sin depender constantemente del equipo de analistas para escribir consultas SQL. Este chatbot democratiza el acceso a la información de ventas garantizando **cero alucinaciones**, ya que el LLM no genera la respuesta final de forma generativa, sino que escribe el código SQL exacto que extrae el dato real de la base de datos.
 
 ## 🔗 Demo en Vivo
-Puedes acceder al dashboard interactivo aquí:  
+Puedes acceder a la demo interactiva aquí:  
 👉 **[https://jml-ventas-ai.streamlit.app/](https://jml-ventas-ai.streamlit.app/)**
 (Cargar el archivo ventas.csv por ejemplo)
 
