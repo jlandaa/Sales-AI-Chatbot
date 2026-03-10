@@ -20,7 +20,7 @@ def ping_streamlit():
         print("Página cargada. Esperando 15 segundos para establecer la conexión WebSocket...")
         
         # Este tiempo asegura que la carga de Streamlit finalice y registre la "actividad"
-        time.sleep(15) 
+        time.sleep(30)
         
         print("Visita completada con éxito. Cerrando navegador.")
         driver.quit()
