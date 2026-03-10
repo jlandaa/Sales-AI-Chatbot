@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
 
-# Lista las aplicaciones del portfolio
+# Lista de las aplicaciones del portfolio
 URLS = [
     "https://jml-ventas-ai.streamlit.app/", # Chatbot de ventas híbrido
     "https://jml-dashboard-adr.streamlit.app/", # URL del dashboard de ADRs argentinos
