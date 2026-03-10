@@ -1,0 +1,27 @@
+name: Mantener App de Streamlit Despierta
+
+on:
+  schedule:
+    # Se ejecuta cada 12 horas (a las 00:00 y 12:00 UTC)
+    - cron: '0 0,12 * * *'
+  workflow_dispatch: # Te permite ejecutar este flujo manualmente desde GitHub
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar entorno de Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install selenium
+
+      - name: Ejecutar script de Selenium
+        run: python keep_awake.py
