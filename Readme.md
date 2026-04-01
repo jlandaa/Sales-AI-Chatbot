@@ -86,7 +86,8 @@ El modelo ha sido sometido a rigurosas pruebas de calidad para garantizar su via
 **1. Pruebas de Comparación y Lógica SQL**
 Evalúa la capacidad de generar agregaciones, ordenamientos y límites correctos.
 
-* **Q:** "¿Cuál es el segundo producto más vendido después de las Medias?" * Resultado esperado: Retorna los Zapatos (120 unidades).
+* **Q:** "¿Cuál es el segundo producto más vendido después de las Medias?"
+* **Resultado esperado:** Retorna los Zapatos (120 unidades).
 
 * **Q:** "¿Qué productos vendieron menos de 40 unidades?"
 
