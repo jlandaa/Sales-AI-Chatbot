@@ -5,6 +5,15 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
+st.markdown("""
+    <style>
+        .block-container {
+            padding-top: 2rem;
+            padding-bottom: 0rem;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # 1. Configuración de la página
 st.set_page_config(page_title="BI Sales Chatbot", page_icon="📊", layout="centered")
 
