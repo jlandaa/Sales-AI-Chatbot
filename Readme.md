@@ -1,4 +1,6 @@
 # 🤖 Chatbot de Ventas BI - Motor Text-to-SQL
+![Status: Maintained](https://img.shields.io/badge/Status-Maintained-brightgreen?style=for-the-badge)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
 Este proyecto es un asistente de Business Intelligence impulsado por Inteligencia Artificial que permite a los usuarios consultar un reporte de ventas utilizando lenguaje natural. El sistema actúa como un "traductor" que convierte preguntas coloquiales en consultas SQL precisas, ejecutándolas contra una base de datos en memoria para devolver resultados matemáticamente exactos.
 
