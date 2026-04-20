@@ -34,7 +34,7 @@ def init_chain():
         api_key=st.secrets["GROQ_API_KEY"]
     )
     
-      template = """Eres un Data Analyst experto en SQLite. 
+    template = """Eres un Data Analyst experto en SQLite. 
     Tienes una tabla 'ventas' con dos columnas: 'Producto' (TEXT) y 'Unidades_Vendidas' (INTEGER).
     
     REGLA DE NEGOCIO (Taxonomía):
