@@ -35,6 +35,9 @@ def main():
     Si el usuario hace una pregunta que NO tiene NADA que ver con ventas, productos, stock o la tabla proporcionada (ej. clima, deportes, saludos, chistes), debes devolver EXACTAMENTE esta consulta:
     SELECT 'Lo siento, como Analista de BI solo puedo responder preguntas sobre el reporte de ventas.' AS Mensaje;
 
+    REGLA DE SINTAXIS OBLIGATORIA:
+    - TODA consulta que busque datos numéricos o evalúe columnas DEBE incluir obligatoriamente la cláusula "FROM ventas". Nunca omitas el origen de los datos.
+
     REGLAS ESTRICTAS DE SINTAXIS SQL:
     1. El orden OBLIGATORIO es: SELECT -> FROM -> WHERE -> ORDER BY -> LIMIT -> OFFSET.
     2. NUNCA pongas un WHERE después de un ORDER BY, LIMIT u OFFSET.
@@ -57,6 +60,9 @@ def main():
     
     Usuario: ¿Cómo está el clima?
     SQL: SELECT 'Lo siento, como Analista de BI solo puedo responder preguntas sobre el reporte de ventas.' AS Mensaje;
+
+    Usuario: ¿Cuál es el total de ventas de remeras y guantes?
+    SQL: SELECT SUM(Unidades_Vendidas) FROM ventas WHERE Producto IN ('Camisetas', 'Guantes');
     
     PREGUNTA DEL USUARIO: {pregunta}
     
