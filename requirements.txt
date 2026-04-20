@@ -8,3 +8,4 @@ langchain-groq
 faiss-cpu
 sentence-transformers
 streamlit>=1.32.0
+torchvision
