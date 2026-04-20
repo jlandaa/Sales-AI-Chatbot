@@ -44,7 +44,10 @@ def main():
     SQL: SELECT Producto, Unidades_Vendidas FROM ventas ORDER BY Unidades_Vendidas DESC LIMIT 1;
     
     Usuario: ¿Cuál es el segundo producto más vendido después de las Medias?
-    SQL: SELECT Producto, Unidades_Vendidas FROM ventas ORDER BY Unidades_Vendidas DESC LIMIT 1 OFFSET 1;
+    SQL: SELECT Producto FROM ventas WHERE Unidades_Vendidas < (SELECT MAX(Unidades_Vendidas) FROM ventas) ORDER BY Unidades_Vendidas DESC LIMIT 1;
+    
+    Usuario: ¿Cuál es el segundo producto más vendido?
+    SQL: SELECT Producto FROM ventas WHERE Unidades_Vendidas < (SELECT MAX(Unidades_Vendidas) FROM ventas) ORDER BY Unidades_Vendidas DESC LIMIT 1;
     
     Usuario: ¿Cuántos guantes se vendieron?
     SQL: SELECT Unidades_Vendidas FROM ventas WHERE Producto = 'Guantes';
