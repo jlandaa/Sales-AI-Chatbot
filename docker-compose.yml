@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  chatbot-app:
+    build: .
+    container_name: bi_chatbot_app
+    ports:
+      - "8501:8501"
+    depends_on:
+      - ollama-service
+    environment:
+      # Variable clave: Le indica a LangChain dónde encontrar el LLM en la red de Docker
+      - OLLAMA_BASE_URL=http://ollama-service:11434 
+
+  ollama-service:
+    image: ollama/ollama:latest
+    container_name: bi_ollama_engine
+    ports:
+      - "11434:11434"
+    volumes:
+      # Volumen persistente: Evita tener que descargar Llama 3.2 cada vez que se reinicia
+      - ollama_data:/root/.ollama
+
+volumes:
+  ollama_data:
