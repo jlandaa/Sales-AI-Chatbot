@@ -139,6 +139,15 @@ Evalúa el comportamiento del motor ante consultas atípicas, cruces complejos y
   * **Comportamiento validado:** Aplica correctamente funciones de agregación global (`AVG()`) sin intentar forzar agrupamientos (`GROUP BY`) innecesarios.
 * **Q:** "¿Qué productos NO son ropa?" (Exclusión lógica)
   * **Comportamiento validado:** Comprende la negación y la aplica sobre la regla de negocio utilizando `NOT IN ('Pantalones', 'Camisetas', 'Camperas')`, devolviendo el resto del catálogo correctamente.
+ 
+### 7. Resiliencia ante el Error Humano y Ambigüedad
+Evalúa el comportamiento del motor frente a errores tipográficos, consultas abiertas y peticiones desbordadas.
+* **Q:** "¿Cuántas canisetas se vendieron?" / "ventas de zapatis" (Errores ortográficos)
+  * **Comportamiento validado:** El modelo utiliza inferencia semántica para corregir errores de tipeo ("canisetas" -> 'Camisetas') y mapearlos a los valores exactos de la base de datos, superando las limitaciones de los buscadores tradicionales por coincidencia exacta.
+* **Q:** "¿Qué datos tenés?" / "Mostrame todo" (Consultas abiertas)
+  * **Comportamiento validado:** Ante consultas exploratorias, el sistema describe dinámicamente su propio esquema de base de datos o ejecuta un `SELECT *` limpio, brindando un panorama general sin alucinar métricas.
+* **Q:** "Dame el top 50 de productos más vendidos" (Límites irreales / Out-of-bounds)
+  * **Comportamiento validado:** Genera correctamente el límite de extracción (`LIMIT 50`) y confía en la integridad del motor SQLite para devolver el catálogo real, sin inventar registros de relleno (Data Padding) para cumplir con el número solicitado.
 
 
 ## APP Preview
