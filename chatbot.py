@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os  # <-- AGREGADO: Necesario para leer variables de entorno
 from dotenv import load_dotenv
 import pandas as pd
 import sqlite3
@@ -18,8 +19,9 @@ def main():
         print(f"❌ Error al cargar los datos: {e}")
         return
 
-    # 2. Configurar el "Traductor" Text-to-SQL (Llama 3.2 3B)
-    llm = ChatOllama(model="llama3.2", temperature=0)
+    # <-- AGREGADO: Lógica dinámica para la URL de Ollama (Docker o Localhost) -->
+    ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+    llm = ChatOllama(model="llama3.2", temperature=0, base_url=ollama_url)
 
     # 3. Prompt de Text-to-SQL con Guardarraíles y Manejo Out-of-Domain
     template = """Eres un Data Analyst experto en SQLite. 
