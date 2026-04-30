@@ -60,8 +60,8 @@ def init_chain():
     Usuario: ¿Cuál es el producto más vendido?
     SQL: SELECT Producto, Unidades_Vendidas FROM ventas ORDER BY Unidades_Vendidas DESC LIMIT 1;
     
-    Usuario: ¿Cuál es el segundo producto más vendido después de las Medias?
-    SQL: SELECT Producto FROM ventas WHERE Unidades_Vendidas < (SELECT MAX(Unidades_Vendidas) FROM ventas) ORDER BY Unidades_Vendidas DESC LIMIT 1;
+    Usuario: ¿Cuál es el producto más vendido después de las Medias?
+    SQL: SELECT Producto FROM ventas WHERE Unidades_Vendidas < (SELECT Unidades_Vendidas FROM ventas WHERE Producto = 'Medias') ORDER BY Unidades_Vendidas DESC LIMIT 1;
     
     Usuario: ¿Cuál es el segundo producto más vendido?
     SQL: SELECT Producto FROM ventas WHERE Unidades_Vendidas < (SELECT MAX(Unidades_Vendidas) FROM ventas) ORDER BY Unidades_Vendidas DESC LIMIT 1;
@@ -74,6 +74,9 @@ def init_chain():
     
     Usuario: ¿Cómo está el clima?
     SQL: SELECT 'Lo siento, como Analista de BI solo puedo responder preguntas sobre el reporte de ventas.' AS Mensaje;
+
+    Usuario: Dame el total de ventas de indumentaria de invierno.
+    SQL: SELECT 'Lo siento, como Analista de BI solo puedo responder sobre las categorías oficiales (Ropa, Calzado, Accesorios).' AS Mensaje;
 
     Usuario: ¿Cuál es el total de ventas de remeras y guantes?
     SQL: SELECT SUM(Unidades_Vendidas) FROM ventas WHERE Producto IN ('Camisetas', 'Guantes');
