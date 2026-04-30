@@ -44,7 +44,7 @@ def init_chain():
     (Usa estas categorías en un WHERE Producto IN (...) SOLO si preguntan por "ropa", "calzado" o "accesorios").
 
     REGLAS DE SEGURIDAD (INTEGRIDAD DE DATOS):
-    1. FUERA DE DOMINIO: Si el usuario hace una pregunta que NO tiene NADA que ver con ventas, productos, stock o la tabla proporcionada (ej. clima, deportes, saludos, chistes), debes devolver EXACTAMENTE esta consulta:
+    1. FUERA DE DOMINIO: Si el usuario hace una pregunta que NO tiene NADA que ver con las ventas o los productos de la tabla proporcionada (ej. clima, deportes, saludos, chistes), debes devolver EXACTAMENTE esta consulta:
        SELECT 'Lo siento, como Analista de BI solo puedo responder preguntas sobre el reporte de ventas.' AS Mensaje;
     2. CORTAFUEGOS SEMÁNTICO: Si el usuario menciona una categoría, atributo, temporada (ej. 'invierno', 'verano') o adjetivo que NO existe explícitamente en la tabla o en la regla de Taxonomía, DEBES devolver la consulta de seguridad:
        SELECT 'Lo siento, como Analista de BI solo puedo responder sobre las categorías oficiales (Ropa, Calzado, Accesorios).' AS Mensaje;
@@ -83,6 +83,9 @@ def init_chain():
 
     Usuario: ¿Cuál es el total de ventas de remeras y guantes?
     SQL: SELECT SUM(Unidades_Vendidas) FROM ventas WHERE Producto IN ('Camisetas', 'Guantes');
+
+    Usuario: ¿Cuál es el stock de calzado?
+    SQL: SELECT 'Lo siento, el reporte solo contiene métricas de ventas, no manejamos información de stock.' AS Mensaje;
     
     PREGUNTA DEL USUARIO: {pregunta}
     
