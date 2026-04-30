@@ -158,6 +158,16 @@ Evalúa la resistencia del sistema frente a ataques de Prompt Injection, secuest
   * **Comportamiento validado:** Mantiene una disciplina de formato inquebrantable para proteger el pipeline de ejecución en Python. Ignora los comandos de generación de texto libre y devuelve **exclusivamente código SQL**. Ante la petición de JSON, utiliza funciones nativas del motor (`json_group_array`) para satisfacer la solicitud de formato sin romper el flujo del script.
 * **Q:** "¿Y el segundo?" (Ambigüedad extrema / Falsa memoria)
   * **Comportamiento validado:** El diseño basado en *Few-Shot Learning* permite al modelo inferir correctamente la intención matemática ("el segundo [producto más vendido]") mapeando la consulta lógica directamente, logrando respuestas coherentes en una arquitectura sin estado (stateless).
+ 
+
+  ## 👨‍💻 Sobre el Autor
+**Juan Manuel Landa**  
+*Ingeniero en Informática | Consultor de Business Intelligence*
+
+Desarrollando soluciones que transforman datos complejos en decisiones estratégicas.
+* 💼 [LinkedIn](https://www.linkedin.com/in/juan-manuel-landa/)
+* 🌐 [Portfolio Personal](https://juan-manuel-landa.netlify.app/)
+* 📍 Quilmes, Buenos Aires, Argentina.
 
 
 ## APP Preview
