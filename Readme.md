@@ -128,6 +128,17 @@ Al basarse en consultas SQL directas sobre la base de datos y no en conocimiento
 * **Acción:** Se cierra el bot, se agrega la línea `Gorras,450` al archivo `ventas.csv`, y se vuelve a ejecutar.
 * **Q:** "¿Cuál es el producto más vendido?"
   * **Comportamiento validado:** El bot identifica inmediatamente a las Gorras como el nuevo producto principal con 450 unidades, comprobando que la lectura es dinámica.
+ 
+### 6. Casos Extremos y Resiliencia (Edge Cases)
+Evalúa el comportamiento del motor ante consultas atípicas, cruces complejos y variaciones de formato por parte del usuario final.
+* **Q:** "¿Cuántos PANTALONES se vendieron?" (Sensibilidad de mayúsculas/minúsculas)
+  * **Comportamiento validado:** El modelo normaliza automáticamente el input del usuario para coincidir con la capitalización exacta de la estructura de la base de datos (`WHERE Producto = 'Pantalones'`).
+* **Q:** "¿Cuál es el total de ventas de calzado y accesorios?" (Filtros compuestos)
+  * **Comportamiento validado:** Une exitosamente múltiples diccionarios de la taxonomía corporativa en una sola cláusula de filtrado `IN ('Zapatos', 'Medias', 'Sombreros', 'Guantes')`.
+* **Q:** "¿Cuál es el promedio de unidades vendidas en general?"
+  * **Comportamiento validado:** Aplica correctamente funciones de agregación global (`AVG()`) sin intentar forzar agrupamientos (`GROUP BY`) innecesarios.
+* **Q:** "¿Qué productos NO son ropa?" (Exclusión lógica)
+  * **Comportamiento validado:** Comprende la negación y la aplica sobre la regla de negocio utilizando `NOT IN ('Pantalones', 'Camisetas', 'Camperas')`, devolviendo el resto del catálogo correctamente.
 
 
 ## APP Preview
