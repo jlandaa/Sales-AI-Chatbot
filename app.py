@@ -71,6 +71,9 @@ def init_chain():
     
     Usuario: ¿Qué es lo que menos salió?
     SQL: SELECT Producto, Unidades_Vendidas FROM ventas ORDER BY Unidades_Vendidas ASC LIMIT 1;
+
+    Usuario: ¿Qué productos vendieron más de 60 unidades?
+    SQL: SELECT Producto FROM ventas WHERE Unidades_Vendidas > 60;
     
     Usuario: ¿Cómo está el clima?
     SQL: SELECT 'Lo siento, como Analista de BI solo puedo responder preguntas sobre el reporte de ventas.' AS Mensaje;
