@@ -26,21 +26,41 @@ El flujo de trabajo (Pipeline) se compone de los siguientes pasos:
 * **LangChain** (Orquestación del LLM)
 * **Ollama / Llama 3.2** (Modelo de lenguaje local)
 * **Pandas & SQLite3** (Manipulación y almacenamiento de datos en memoria)
+* **Docker & Docker Compose** (Contenerización y orquestación para despliegue Enterprise)
 
 ---
 
 ## 📁 Estructura del Proyecto
 
 Asegúrate de tener los siguientes archivos en tu directorio:
-* `chatbot.py`: El script principal con la lógica de LangChain y SQLite.
+* `app.py`: Punto de entrada de la interfaz de usuario (Streamlit).
+* `chatbot.py`: Script principal con la lógica de LangChain, el motor LLM y SQLite.
 * `ventas.csv`: El dataset de origen con las columnas `Producto` y `Unidades_Vendidas`.
+* `Dockerfile` y `docker-compose.yml`: Archivos de configuración para la orquestación en contenedores.
+* `.streamlit/`: Carpeta con configuraciones de servidor optimizadas para producción (`fileWatcherType = "none"`).
 * `requirements.txt`: El listado de dependencias de Python necesarias.
 
 ---
 
 ## 💻 Guía de Instalación y Uso paso a paso
 
-### Paso 1: Requisitos Previos
+### Opción 1: Despliegue con Docker (Recomendado / Enterprise)
+Esta opción despliega la aplicación y el motor de inteligencia artificial en contenedores aislados, ideal para entornos de producción seguros (On-Premise) sin lidiar con dependencias locales.
+
+1. **Requisito:** Tener [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y corriendo.
+2. Clona este repositorio y navega hasta la carpeta en tu terminal.
+3. Levanta la infraestructura en segundo plano ejecutando:
+   ```bash
+   docker-compose up -d
+     ```
+4. Solo la primera vez: Descarga el modelo Llama 3.2 dentro del contenedor del motor ejecutando:
+   ```bash
+   docker exec -it bi_ollama_engine ollama run llama3.2
+   ```
+5. Abre tu navegador e ingresa a http://localhost:8501
+
+### Opción 2: Ejecución Local (Desarrollo / Entorno Virtual)
+#### Paso 1: Requisitos Previos
 1. Tener **Python 3.8+** instalado en tu sistema.
 2. Descargar e instalar [Ollama](https://ollama.com/).
 3. Descargar el modelo Llama 3.2. Abre tu terminal y ejecuta:
@@ -48,7 +68,7 @@ Asegúrate de tener los siguientes archivos en tu directorio:
    ollama run llama3.2
    ```
 
-###   Paso 2: Preparar el Entorno
+####   Paso 2: Preparar el Entorno
 1. Clona este repositorio o crea una carpeta con los archivos del proyecto.
 
 2. Es una buena práctica crear un entorno virtual. En tu terminal, dentro de la carpeta del proyecto, ejecuta:
@@ -67,13 +87,13 @@ venv\Scripts\activate
 source venv/bin/activate
  ```
 
-### Paso 3: Instalar Dependencias
+#### Paso 3: Instalar Dependencias
 Con el entorno virtual activado, instala las librerías necesarias ejecutando:
   ```bash
 pip install -r requirements.txt
    ```
 
-###    Paso 4: Ejecutar el Chatbot
+####    Paso 4: Ejecutar el Chatbot
 Asegúrate de que Ollama esté corriendo en segundo plano y ejecuta el script principal:
   ```bash
 python chatbot.py
