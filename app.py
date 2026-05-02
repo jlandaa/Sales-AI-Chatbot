@@ -24,15 +24,20 @@ st.markdown("Sube tu reporte de ventas y consúltalo en lenguaje natural. El mod
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# 3. Inicializar el modelo y el prompt (Usando la nube gratuita de Groq)
 @st.cache_resource
 def init_chain():
-    # Usamos Llama 3 a través de Groq y leemos la API Key de los secretos de Streamlit
-    llm = ChatGroq(
-        model="llama-3.1-8b-instant", 
-        temperature=0, 
-        api_key=st.secrets["GROQ_API_KEY"]
-    )
+    # Detectar si estamos en la nube (Streamlit Cloud tiene los secrets configurados)
+    try:
+        from langchain_groq import ChatGroq
+        api_key = st.secrets["GROQ_API_KEY"]
+        llm = ChatGroq(api_key=api_key, model_name="llama3-8b-8192", temperature=0)
+    
+    # Si da error (estamos en local/Docker sin el archivo secrets), usar Ollama
+    except Exception:
+        import os
+        from langchain_ollama import ChatOllama
+        ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        llm = ChatOllama(model="llama3.2", temperature=0, base_url=ollama_url)
     
     template = """Eres un Data Analyst experto en SQLite. 
     Tienes una tabla 'ventas' con dos columnas: 'Producto' (TEXT) y 'Unidades_Vendidas' (INTEGER).
