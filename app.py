@@ -26,7 +26,8 @@ if "messages" not in st.session_state:
 
 @st.cache_resource
 def init_chain():
-    # Detectar si estamos en la nube (Streamlit Cloud tiene los secrets configurados)
+    # Detectar si estamos en la nube
+    # Usamos Llama 3 a través de Groq y leemos la API Key de los secretos de Streamlit
     try:
         from langchain_groq import ChatGroq
         api_key = st.secrets["GROQ_API_KEY"]
