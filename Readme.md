@@ -21,6 +21,11 @@ El flujo de trabajo (Pipeline) se compone de los siguientes pasos:
 3. **Prompt Engineering** El LLM recibe un *system prompt* estricto que define la estructura de la tabla, reglas de negocio (taxonomías como "Ropa" o "Calzado") y directivas de seguridad (Out-of-Domain) para evitar respuestas fuera del contexto comercial.
 4. **Ejecución y Respuesta:** El modelo devuelve únicamente código SQL válido. El script ejecuta esta query en la base de datos SQLite y retorna el dato exacto al usuario final.
 
+### 🧠 Arquitectura Híbrida (Cloud vs On-Premise)
+Para garantizar la mejor experiencia de usuario en diferentes entornos, esta aplicación cuenta con **Environment Awareness** (conciencia de entorno) en su código fuente:
+*   **Modo Nube (Demo Online):** Cuando se despliega en Streamlit Community Cloud, el sistema detecta el entorno y enruta las consultas a través de la API de **Groq**. Esto permite que la demo esté disponible 24/7 y responda a una velocidad ultrarrápida sin requerir hardware dedicado.
+*   **Modo Local / Docker (Privacidad Total):** Al ejecutar el proyecto de forma local o a través del despliegue corporativo con Docker Compose, la aplicación redirige automáticamente el procesamiento a **Ollama (Llama 3.2)**. En este modo, el sistema se vuelve 100% *offline* y *On-Premise*, asegurando que los datos sensibles (como el archivo CSV) nunca salgan de la red local de la empresa.
+
 ## 🛠️ Tecnologías Utilizadas
 * **Python 3**
 * **LangChain** (Orquestación del LLM)
