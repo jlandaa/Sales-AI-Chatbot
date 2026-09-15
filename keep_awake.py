@@ -1,5 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 import time
 
 # Lista de las aplicaciones del portfolio
@@ -23,9 +27,18 @@ def ping_streamlit_apps():
             print(f"Iniciando visita a: {url}")
             driver.get(url)
             
-            # Aumentamos a 30 segundos para asegurar la conexión en apps más pesadas
-            print("Página cargada. Esperando 30 segundos para establecer la conexión WebSocket...")
-            time.sleep(30) 
+            try:
+                print("Buscando el botón para despertar la app...")
+                boton_despertar = WebDriverWait(driver, 15).until(
+                    EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Yes, get this app back up!')]"))
+                )
+                boton_despertar.click()
+                print("¡Botón presionado! Esperando 30 segundos para que la app arranque...")
+                time.sleep(30)
+                
+            except TimeoutException:
+                print("El botón no apareció. La app ya estaba activa.")
+                time.sleep(5)
             
             print(f"Visita completada con éxito para: {url}\n")
             
