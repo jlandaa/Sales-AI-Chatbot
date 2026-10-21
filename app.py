@@ -94,7 +94,7 @@ def init_entorno_hibrido():
         from langchain_groq import ChatGroq
         
         api_key = st.secrets["GROQ_API_KEY"]
-        llm = ChatGroq(api_key=api_key, model_name="gpt-oss-20b", temperature=0)
+        llm = ChatGroq(api_key=api_key, model_name="openai/gpt-oss-20b", temperature=0)
         
         gcp_credentials = dict(st.secrets["GCP_CREDENTIALS"])
         credentials = service_account.Credentials.from_service_account_info(gcp_credentials)
