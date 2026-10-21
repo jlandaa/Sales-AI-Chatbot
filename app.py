@@ -123,6 +123,21 @@ sql_chain, db_conn, entorno = init_entorno_hibrido()
 if entorno == "CLOUD":
     st.success("🟢 Sistema Conectado a Data Warehouse Corporativo (Google BigQuery)")
     datos_cargados = True 
+    # NUEVO BLOQUE: Visualización gráfica de la tabla en GCP
+    try:
+        # Hacemos un query a BigQuery para traer toda la tabla
+        query_job = db_conn.query(f"SELECT * FROM `{db_conn.project}.ventas_data.ventas`")
+        df_bq = query_job.to_dataframe()
+        
+        # Mostramos la tabla dentro de un bloque desplegable para no saturar la UI
+        with st.expander("👁️ Ver tabla de datos alojada en Google Cloud", expanded=False):
+            st.dataframe(
+                df_bq,
+                use_container_width=True,
+                hide_index=True # Ocultamos el índice numérico por defecto de Pandas para que se vea más limpio
+            )
+    except Exception as e:
+        st.warning(f"No se pudo cargar la vista previa de la tabla: {e}")
 else:
     st.info("🟡 Entorno Local Aislado. Sube tu reporte para procesarlo en memoria.")
     uploaded_file = st.file_uploader("Sube tu archivo de ventas (.csv)", type=["csv"])
