@@ -82,8 +82,16 @@ def init_entorno_hibrido():
 
     PREGUNTA DEL USUARIO: {pregunta}
     
-    Escribe la consulta SQL exacta para responder. 
-    IMPORTANTE: Devuelve ÚNICAMENTE el código SQL. No uses bloques de código (```sql), no des explicaciones.
+    IMPORTANTE: Compórtate como una API. Devuelve ÚNICAMENTE un objeto JSON válido con la siguiente estructura exacta, sin texto adicional ni bloques markdown:
+    {{
+        "sql": "AQUÍ_VA_TU_QUERY",
+        "grafico": "AQUÍ_EL_TIPO"
+    }}
+    
+    Reglas para elegir el campo "grafico":
+    - Usa "metrica" si la consulta devuelve un solo número (ej. SUM, COUNT, MAX).
+    - Usa "barras" si la consulta devuelve una categoría y un valor numérico (ej. ventas por producto).
+    - Usa "tabla" si es un mensaje de texto de seguridad o no aplica ninguna de las anteriores.
     """
     prompt_template = PromptTemplate.from_template(template)
 
