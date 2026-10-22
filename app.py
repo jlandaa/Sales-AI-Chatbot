@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 import os
+import json
 # 1. NUEVOS IMPORTS PARA GOOGLE CLOUD
 from google.cloud import bigquery
 from google.oauth2 import service_account
@@ -173,10 +174,17 @@ if datos_cargados:
         with st.chat_message("assistant"):
             with st.spinner("Analizando en la base de datos..."):
                 try:
-                    query_generada = sql_chain.invoke({"pregunta": prompt}).strip()
-                    query_generada = query_generada.replace("```sql", "").replace("```", "").strip()
-                    st.code(query_generada, language="sql")
+                    # 1. Obtenemos el texto del LLM y limpiamos marcas markdown
+                    respuesta_llm = sql_chain.invoke({"pregunta": prompt}).strip()
+                    respuesta_llm = respuesta_llm.replace("```json", "").replace("```sql", "").replace("```", "").strip()
                     
+                    # 2. Parseamos el JSON
+                    dict_respuesta = json.loads(respuesta_llm)
+                    query_generada = dict_respuesta["sql"]
+                    tipo_grafico = dict_respuesta["grafico"]
+                    
+                    st.code(query_generada, language="sql")
+
                     # --- MAGIA HÍBRIDA AQUÍ ---
                     if entorno == "CLOUD":
                         job_config = bigquery.QueryJobConfig(default_dataset=f"{db_conn.project}.ventas_data")
@@ -186,18 +194,37 @@ if datos_cargados:
                         cursor = db_conn.cursor()
                         cursor.execute(query_generada)
                         resultados = cursor.fetchall()
-                    # --------------------------
-                    
+                        
+                    # --- 3. PREPARAMOS EL TEXTO DE RESPALDO  ---
                     if not resultados or (len(resultados) > 0 and resultados[0][0] is None):
-                        respuesta = "No se encontraron resultados para esa consulta."
+                        respuesta_texto = "No se encontraron resultados para esa consulta."
                     else:
-                        respuesta = "\n".join([f"- {fila[0]}: {fila[1]}" if len(fila) > 1 else f"- {fila[0]}" for fila in resultados])
-                    
-                    st.markdown(f"**Resultado:**\n{respuesta}")
-                    
+                        respuesta_texto = "\n".join([f"- {fila[0]}: {fila[1]}" if len(fila) > 1 else f"- {fila[0]}" for fila in resultados])
+
+                    # --- 4. RENDERIZADO VISUAL EN PANTALLA ---
+                    if respuesta_texto == "No se encontraron resultados para esa consulta.":
+                        st.warning(respuesta_texto)
+                    else:
+                        st.markdown("**Resultado Analítico:**")
+                        
+                        # Gráfico de Métrica
+                        if tipo_grafico == "metrica" and len(resultados[0]) == 1:
+                            st.metric(label="Valor Calculado", value=f"{resultados[0][0]:,}")
+                            
+                        # Gráfico de Barras
+                        elif tipo_grafico == "barras" and len(resultados[0]) > 1:
+                            df_grafico = pd.DataFrame(resultados)
+                            df_grafico = df_grafico.set_index(0) 
+                            st.bar_chart(df_grafico)
+                            
+                        # Fallback (Tabla/Texto)
+                        else:
+                            st.markdown(respuesta_texto)
+
+                    # 5. Guardamos en el historial para que no desaparezca al preguntar de nuevo
                     st.session_state.messages.append({
                         "role": "assistant", 
-                        "content": f"**Query ejecutada:**\n```sql\n{query_generada}\n```\n**Resultado:**\n{respuesta}"
+                        "content": f"**Query ejecutada:**\n```sql\n{query_generada}\n```\n**Resultado:**\n{respuesta_texto}"
                     })
 
                 except Exception as e:
