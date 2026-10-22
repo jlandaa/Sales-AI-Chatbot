@@ -2,7 +2,7 @@
 ![Status: Maintained](https://img.shields.io/badge/Status-Maintained-brightgreen?style=for-the-badge)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
-Este proyecto es un asistente de Business Intelligence impulsado por Inteligencia Artificial que permite a los usuarios consultar un reporte de ventas utilizando lenguaje natural. El sistema actúa como un "traductor" que convierte preguntas coloquiales en consultas SQL precisas, ejecutándolas contra una base de datos en memoria para devolver resultados matemáticamente exactos.
+Este proyecto es un asistente de Business Intelligence impulsado por Inteligencia Artificial que permite a los usuarios consultar un reporte de ventas utilizando lenguaje natural. El sistema actúa como un "traductor" que convierte preguntas coloquiales en consultas SQL precisas, ejecutándolas contra una base de datos para devolver resultados matemáticamente exactos.
 
 ## 🚀 ¿Qué resuelve este proyecto?
 En entornos corporativos, los equipos de negocio necesitan respuestas rápidas sobre sus datos sin depender constantemente del equipo de analistas para escribir consultas SQL. Este chatbot democratiza el acceso a la información de ventas **minimizando drásticamente** el riesgo de alucinaciones numéricas. Al utilizar una arquitectura Text-to-SQL, la respuesta final proviene exclusivamente de la base de datos y no de la generación creativa del modelo, asegurando la integridad de la información reportada.
@@ -10,40 +10,41 @@ En entornos corporativos, los equipos de negocio necesitan respuestas rápidas s
 ## 🔗 Demo en Vivo
 Puedes acceder a la demo interactiva aquí:  
 👉 **[https://jml-ventas-ai.streamlit.app/](https://jml-ventas-ai.streamlit.app/)**
-(Cargar el archivo ventas.csv por ejemplo)
 
 ## ⚙️ ¿Cómo funciona?
 
 El flujo de trabajo (Pipeline) se compone de los siguientes pasos:
 
-1. **Ingesta de Datos:** Se lee un archivo `ventas.csv` utilizando Pandas y se carga dinámicamente en una base de datos SQLite en memoria (`sqlite3`).
-2. **Procesamiento del Lenguaje:** Se utiliza **LangChain** para gestionar el flujo y conectar con un modelo local (**Llama 3.2 3B** vía **Ollama**).
-3. **Prompt Engineering** El LLM recibe un *system prompt* estricto que define la estructura de la tabla, reglas de negocio (taxonomías como "Ropa" o "Calzado") y directivas de seguridad (Out-of-Domain) para evitar respuestas fuera del contexto comercial.
-4. **Ejecución y Respuesta:** El modelo devuelve únicamente código SQL válido. El script ejecuta esta query en la base de datos SQLite y retorna el dato exacto al usuario final.
+1. **Ingesta y Conexión de Datos:** El sistema detecta dinámicamente el entorno de ejecución. Si opera en la nube, se autentica directamente contra un Data Warehouse en **Google BigQuery**. Si opera en local, lee un archivo `ventas.csv` y lo carga en una base de datos **SQLite** en memoria.
+2. **Procesamiento del Lenguaje:** Se utiliza **LangChain** para gestionar el flujo y enrutar la petición hacia el motor LLM correspondiente (Groq en la nube u Ollama en local).
+3. **Prompt Engineering:** El LLM recibe un *system prompt* estricto que define la estructura de la tabla, reglas de negocio (taxonomías como "Ropa" o "Calzado") y directivas de seguridad (Out-of-Domain) para evitar respuestas fuera del contexto comercial.
+4. **Ejecución y Respuesta:** El modelo devuelve únicamente código SQL válido. El script ejecuta esta query en la base de datos (GCP o SQLite) y retorna el dato exacto al usuario final.
 
 ### 🧠 Arquitectura Híbrida (Cloud vs On-Premise)
 Para garantizar la mejor experiencia de usuario en diferentes entornos, esta aplicación cuenta con **Environment Awareness** (conciencia de entorno) en su código fuente:
-*   **Modo Nube (Demo Online):** Cuando se despliega en Streamlit Community Cloud, el sistema detecta el entorno y enruta las consultas a través de la API de **Groq**. Esto permite que la demo esté disponible 24/7 y responda a una velocidad ultrarrápida sin requerir hardware dedicado.
-*   **Modo Local / Docker (Privacidad Total):** Al ejecutar el proyecto de forma local o a través del despliegue corporativo con Docker Compose, la aplicación redirige automáticamente el procesamiento a **Ollama (Llama 3.2)**. En este modo, el sistema se vuelve 100% *offline* y *On-Premise*, asegurando que los datos sensibles (como el archivo CSV) nunca salgan de la red local de la empresa.
+*   **Modo Nube (Demo Online):** Cuando se despliega en Streamlit Community Cloud, el sistema detecta el entorno, enruta las consultas de IA a través de la API de **Groq** (GPT-OSS-20B) y ejecuta el código SQL directamente contra **Google BigQuery**. Esto simula un entorno corporativo real, disponible 24/7 sin requerir que el usuario suba archivos.
+*   **Modo Local / Docker (Privacidad Total):** Al ejecutar el proyecto de forma local o a través del despliegue corporativo con Docker Compose, la aplicación redirige el procesamiento a **Ollama (Llama 3.2)** y levanta la base de datos en **SQLite**. En este modo, el sistema se vuelve 100% *offline* y *On-Premise*, asegurando que los datos sensibles nunca salgan de la red local de la empresa.
 
 ## 🛠️ Tecnologías Utilizadas
-* **Python 3**
-* **LangChain** (Orquestación del LLM)
-* **Ollama / Llama 3.2** (Modelo de lenguaje local)
-* **Pandas & SQLite3** (Manipulación y almacenamiento de datos en memoria)
-* **Docker & Docker Compose** (Contenerización y orquestación para despliegue Enterprise)
+- **Python 3**
+- **LangChain** (Orquestación del LLM)
+- **Google BigQuery** (Data Warehouse Cloud)
+- **Groq API / Llama 3.2 local vía Ollama** (Modelos de lenguaje)
+- **Pandas & SQLite3** (Manipulación y almacenamiento de datos local)
+- **Docker & Docker Compose** (Contenerización para despliegue Enterprise)
+- **Streamlit** (Interfaz de usuario interactiva)
 
 ---
 
 ## 📁 Estructura del Proyecto
 
 Asegúrate de tener los siguientes archivos en tu directorio:
-* `app.py`: Punto de entrada de la interfaz de usuario (Streamlit).
-* `chatbot.py`: Script principal con la lógica de LangChain, el motor LLM y SQLite.
-* `ventas.csv`: El dataset de origen con las columnas `Producto` y `Unidades_Vendidas`.
-* `Dockerfile` y `docker-compose.yml`: Archivos de configuración para la orquestación en contenedores.
-* `.streamlit/`: Carpeta con configuraciones de servidor optimizadas para producción (`fileWatcherType = "none"`).
-* `requirements.txt`: El listado de dependencias de Python necesarias.
+- `app.py`: Punto de entrada de la arquitectura híbrida y la interfaz web.
+- `chatbot.py`: Script original *offline* para uso exclusivo por terminal.
+- `ventas.csv`: El dataset de origen local.
+- `Dockerfile` y `docker-compose.yml`: Archivos de configuración para la orquestación en contenedores.
+- `.streamlit/`: Carpeta con configuraciones de servidor optimizadas para producción (los *secrets* de GCP se inyectan solo en el entorno Cloud).
+- `requirements.txt`: El listado de dependencias de Python necesarias.
 
 ---
 
