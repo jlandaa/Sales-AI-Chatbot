@@ -19,6 +19,12 @@ st.markdown("""
 # Configuración de la página
 st.set_page_config(page_title="BI Sales Chatbot", page_icon="📊", layout="centered")
 
+# Logo en la barra lateral
+with st.sidebar:
+    st.image("logo_jml.png", use_column_width=True)
+    st.markdown("---")
+    st.markdown("**Desarrollado por JML Analytics**")
+    
 st.title("🤖 Chatbot de Ventas BI")
 st.markdown("Consulta tu reporte de ventas en lenguaje natural. El modelo generará la consulta SQL y extraerá el dato exacto.")
 
