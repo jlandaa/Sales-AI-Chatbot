@@ -16,6 +16,7 @@ COPY chatbot.py .
 
 # Base de datos local
 COPY ventas.csv .
+COPY Logo_jml.png .
 
 # Carpeta de configuración del servidor de Streamlit
 COPY .streamlit/ .streamlit/
