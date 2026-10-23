@@ -228,6 +228,7 @@ if datos_cargados:
                         # NUEVO: Gráfico de Dispersión
                         elif tipo_grafico == "dispersion" and len(resultados[0]) > 1:
                             df_grafico = pd.DataFrame(resultados)
+                            df_grafico = df_grafico.set_index(0)
                             st.scatter_chart(df_grafico)
                             
                         # Fallback (Tabla/Texto)
