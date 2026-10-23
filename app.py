@@ -21,7 +21,7 @@ st.set_page_config(page_title="BI Sales Chatbot", page_icon="Logo_jml.png", layo
 
 # Logo en la barra lateral
 with st.sidebar:
-    st.image("logo_jml.png", use_column_width=True)
+    st.image("Logo_jml.png", use_column_width=True)
     st.markdown("---")
     st.markdown("**Desarrollado por JML Analytics**")
     
