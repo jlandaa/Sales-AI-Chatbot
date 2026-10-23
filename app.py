@@ -32,7 +32,7 @@ def init_entorno_hibrido():
     from langchain_core.output_parsers import StrOutputParser
     
     template = """Eres un Data Analyst experto en bases de datos. 
-    Tienes una tabla 'ventas' con dos columnas: 'Producto' (STRING) y 'Unidades_Vendidas' (INTEGER).
+    Tienes una tabla 'ventas' con cuatro columnas: 'Producto' (TEXT), 'Unidades_Vendidas' (INTEGER), 'Fecha_Venta' (DATE) y 'Precio_Unitario' (FLOAT).
     
     REGLA DE NEGOCIO (Taxonomía):
     - Calzado = 'Zapatos', 'Medias'
