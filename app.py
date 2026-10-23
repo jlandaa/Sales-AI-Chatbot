@@ -17,7 +17,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Configuración de la página
-st.set_page_config(page_title="BI Sales Chatbot", page_icon="📊", layout="centered")
+st.set_page_config(page_title="BI Sales Chatbot", page_icon="logo_jml.png", layout="centered")
 
 # Logo en la barra lateral
 with st.sidebar:
