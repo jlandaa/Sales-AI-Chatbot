@@ -92,6 +92,8 @@ def init_entorno_hibrido():
     Reglas para elegir el campo "grafico":
     - Usa "metrica" si la consulta devuelve un solo número (ej. SUM, COUNT, MAX).
     - Usa "barras" si la consulta devuelve una categoría y un valor numérico (ej. ventas por producto).
+    - Usa "lineas" si la consulta pide evolución temporal o fechas.
+    - Usa "dispersion" si piden comparar precios vs unidades.
     - Usa "tabla" si es un mensaje de texto de seguridad o no aplica ninguna de las anteriores.
     """
     prompt_template = PromptTemplate.from_template(template)
@@ -216,6 +218,17 @@ if datos_cargados:
                             df_grafico = pd.DataFrame(resultados)
                             df_grafico = df_grafico.set_index(0) 
                             st.bar_chart(df_grafico)
+
+                        # NUEVO: Gráfico de Líneas
+                        elif tipo_grafico == "lineas" and len(resultados[0]) > 1:
+                            df_grafico = pd.DataFrame(resultados)
+                            df_grafico = df_grafico.set_index(0) 
+                            st.line_chart(df_grafico)
+                            
+                        # NUEVO: Gráfico de Dispersión
+                        elif tipo_grafico == "dispersion" and len(resultados[0]) > 1:
+                            df_grafico = pd.DataFrame(resultados)
+                            st.scatter_chart(df_grafico)
                             
                         # Fallback (Tabla/Texto)
                         else:
