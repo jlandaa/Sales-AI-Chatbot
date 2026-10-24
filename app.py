@@ -215,9 +215,18 @@ if datos_cargados:
                     else:
                         st.markdown("**Resultado Analítico:**")
                         
-                        # Gráfico de Métrica
-                        if tipo_grafico == "metrica" and len(resultados[0]) == 1:
-                            st.metric(label="Valor Calculado", value=f"{resultados[0][0]:,}")
+                       # NUEVO: Gráfico de Métrica (KPI) con control de tipos de datos
+                        elif tipo_grafico == "metrica" and resultados:
+                            valor = resultados[0][0]
+                            
+                            # Validamos si es un número (int o float) para formatearlo
+                            if isinstance(valor, (int, float)):
+                                valor_mostrar = f"{valor:,}".replace(",", ".")
+                            else:
+                                # Si es un texto o fecha, lo dejamos intacto
+                                valor_mostrar = str(valor)
+                                
+                            st.metric(label="Valor Calculado", value=valor_mostrar)
                             
                         # Gráfico de Barras
                         elif tipo_grafico == "barras" and len(resultados[0]) > 1:
