@@ -215,8 +215,8 @@ if datos_cargados:
                     else:
                         st.markdown("**Resultado Analítico:**")
                         
-                       # NUEVO: Gráfico de Métrica (KPI) con control de tipos de datos
-                       elif tipo_grafico == "metrica" and resultados:
+                        # NUEVO: Gráfico de Métrica (KPI) con control de tipos de datos
+                        if tipo_grafico == "metrica" and resultados:
                             valor = resultados[0][0]
                             
                             # Validamos si es un número (int o float) para formatearlo
@@ -234,13 +234,13 @@ if datos_cargados:
                             df_grafico = df_grafico.set_index(0) 
                             st.bar_chart(df_grafico)
 
-                        # NUEVO: Gráfico de Líneas
+                        # Gráfico de Líneas
                         elif tipo_grafico == "lineas" and len(resultados[0]) > 1:
                             df_grafico = pd.DataFrame(resultados)
                             df_grafico = df_grafico.set_index(0) 
                             st.line_chart(df_grafico)
                             
-                        # NUEVO: Gráfico de Dispersión
+                        # Gráfico de Dispersión
                         elif tipo_grafico == "dispersion" and len(resultados[0]) > 1:
                             df_grafico = pd.DataFrame(resultados)
                             df_grafico = df_grafico.set_index(0)
