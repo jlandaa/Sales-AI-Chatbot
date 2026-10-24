@@ -216,7 +216,7 @@ if datos_cargados:
                         st.markdown("**Resultado Analítico:**")
                         
                        # NUEVO: Gráfico de Métrica (KPI) con control de tipos de datos
-                        elif tipo_grafico == "metrica" and resultados:
+                       elif tipo_grafico == "metrica" and resultados:
                             valor = resultados[0][0]
                             
                             # Validamos si es un número (int o float) para formatearlo
