@@ -96,9 +96,9 @@ def init_entorno_hibrido():
     }}
     
     Reglas para elegir el campo "grafico":
-    - Usa "metrica" si la consulta devuelve un solo número (ej. SUM, COUNT, MAX).
+    - Usa "metrica" o "tabla" si la consulta devuelve un solo número o busca una fecha puntual/día específico (ej. "¿En qué fecha se vendieron más medias?").
     - Usa "barras" si la consulta devuelve una categoría y un valor numérico (ej. ventas por producto).
-    - Usa "lineas" si la consulta pide evolución temporal o fechas.
+    - Usa "lineas" EXCLUSIVAMENTE si la consulta pide evolución temporal, tendencias o comportamiento a lo largo de un período de fechas.
     - Usa "dispersion" si piden comparar precios vs unidades.
     - Usa "tabla" si es un mensaje de texto de seguridad o no aplica ninguna de las anteriores.
     """
