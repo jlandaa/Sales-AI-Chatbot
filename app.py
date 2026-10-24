@@ -228,11 +228,30 @@ if datos_cargados:
                                 
                             st.metric(label="Valor Calculado", value=valor_mostrar)
                             
-                        # Gráfico de Barras
+                        # Gráfico de Barras (con inteligencia de UX y Finanzas)
                         elif tipo_grafico == "barras" and len(resultados[0]) > 1:
-                            df_grafico = pd.DataFrame(resultados)
-                            df_grafico = df_grafico.set_index(0) 
-                            st.bar_chart(df_grafico)
+                            
+                            # Interceptor: Si hay un solo registro (ej. LIMIT 1), forzamos una Métrica
+                            if len(resultados) == 1:
+                                categoria = str(resultados[0][0])
+                                valor = resultados[0][1]
+                                
+                                # Si el valor es FLOAT (Precio o Ingresos), aplicamos formato moneda
+                                if isinstance(valor, float):
+                                    valor_mostrar = f"${valor:,.0f}".replace(",", ".")
+                                # Si es INTEGER (Unidades vendidas), aplicamos formato numérico normal
+                                elif isinstance(valor, int):
+                                    valor_mostrar = f"{valor:,}".replace(",", ".")
+                                else:
+                                    valor_mostrar = str(valor)
+                                    
+                                st.metric(label=f"Top 1: {categoria}", value=valor_mostrar)
+                                
+                            else:
+                                # Si hay múltiples registros, dibujamos el gráfico de barras normal
+                                df_grafico = pd.DataFrame(resultados)
+                                df_grafico = df_grafico.set_index(0) 
+                                st.bar_chart(df_grafico)
 
                         # Gráfico de Líneas
                         elif tipo_grafico == "lineas" and len(resultados[0]) > 1:
