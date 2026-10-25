@@ -46,11 +46,11 @@ def init_entorno_hibrido():
     - Accesorios = 'Sombreros', 'Guantes'
     (Usa estas categorías en un WHERE Producto IN (...) SOLO si preguntan por "ropa", "calzado" o "accesorios").
 
-    REGLAS DE SEGURIDAD (INTEGRIDAD DE DATOS Y ERRORES):
-    1. FUERA DE DOMINIO O LÓGICA ABSURDA: Si el usuario hace una pregunta que NO tiene NADA que ver con ventas, pide cruzar o sumar atributos incompatibles (ej. multiplicar texto por fecha), o menciona atributos inexistentes, debes abortar y devolver EXACTAMENTE este JSON:
-       {"sql": "SELECT 'Lo siento, como Analista de BI solo puedo realizar cruces lógicos sobre el reporte de ventas.' AS Mensaje;", "grafico": "texto"}
-    2. CORTAFUEGOS SEMÁNTICO: Si mencionan una categoría, atributo o temporada (ej. 'invierno') que NO existe en la tabla, devuelve:
-       {"sql": "SELECT 'Lo siento, solo puedo responder sobre las categorías oficiales (Ropa, Calzado, Accesorios).' AS Mensaje;", "grafico": "texto"}
+   REGLAS DE SEGURIDAD (INTEGRIDAD DE DATOS Y ERRORES):
+    1. FUERA DE DOMINIO O LÓGICA ABSURDA: Si el usuario hace una pregunta que NO tiene NADA que ver con ventas, pide cruzar o sumar atributos incompatibles (ej. multiplicar texto por fecha), o menciona atributos inexistentes, debes abortar y devolver EXACTAMENTE esta consulta:
+       SELECT 'Lo siento, como Analista de BI solo puedo realizar cruces lógicos sobre el reporte de ventas.' AS Mensaje;
+    2. CORTAFUEGOS SEMÁNTICO: Si mencionan una categoría, atributo o temporada (ej. 'invierno') que NO existe en la tabla, debes devolver EXACTAMENTE esta consulta:
+       SELECT 'Lo siento, solo puedo responder sobre las categorías oficiales (Ropa, Calzado, Accesorios).' AS Mensaje;
 
     REGLA DE SINTAXIS OBLIGATORIA:
     - TODA consulta que busque datos numéricos o evalúe columnas DEBE incluir obligatoriamente la cláusula "FROM ventas". Nunca omitas el origen de los datos.
@@ -186,10 +186,16 @@ if datos_cargados:
                     respuesta_llm = sql_chain.invoke({"pregunta": prompt}).strip()
                     respuesta_llm = respuesta_llm.replace("```json", "").replace("```sql", "").replace("```", "").strip()
                     
-                    # 2. Parseamos el JSON
-                    dict_respuesta = json.loads(respuesta_llm)
-                    query_generada = dict_respuesta["sql"]
-                    tipo_grafico = dict_respuesta["grafico"]
+                    # Parseamos el JSON
+                    # INTERCEPTOR DE SEGURIDAD (Evita el crasheo de JSON)
+                    if "Lo siento" in respuesta_llm:
+                        query_generada = respuesta_llm
+                        tipo_grafico = "texto"
+                    else:
+                        # Si no es un error, parseamos el JSON normal
+                        dict_respuesta = json.loads(respuesta_llm)
+                        query_generada = dict_respuesta["sql"]
+                        tipo_grafico = dict_respuesta["grafico"]
                     
                     st.code(query_generada, language="sql")
 
@@ -210,7 +216,9 @@ if datos_cargados:
                         respuesta_texto = "\n".join([f"- {fila[0]}: {fila[1]}" if len(fila) > 1 else f"- {fila[0]}" for fila in resultados])
 
                     # --- 4. RENDERIZADO VISUAL EN PANTALLA ---
-                    if respuesta_texto == "No se encontraron resultados para esa consulta.":
+                    if "Lo siento" in respuesta_texto:
+                        st.warning(resultados[0][0])
+                    elif respuesta_texto == "No se encontraron resultados para esa consulta.":
                         st.warning(respuesta_texto)
                     else:
                         st.markdown("**Resultado Analítico:**")
