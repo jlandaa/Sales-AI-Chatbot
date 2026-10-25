@@ -198,7 +198,7 @@ El sistema toma decisiones de diseño (UX) al vuelo basándose en los resultados
     * **Matemática Financiera:** Multiplica columnas físicas al vuelo sin requerir columnas pre-calculadas (`ORDER BY (Unidades_Vendidas * Precio_Unitario) DESC`).
     * **UX Rendering:** Devuelve un JSON estructurado que el frontend convierte instantáneamente en una tarjeta KPI financiera de alto nivel.
 
-## APP Preview
+## 📸 APP Preview
 
 <img width="1387" height="1065" alt="Screenshot" src="https://github.com/user-attachments/assets/d2565005-9571-4978-9fc6-c661aa1aa2fb" />
 
