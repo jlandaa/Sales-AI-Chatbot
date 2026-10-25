@@ -186,16 +186,16 @@ if datos_cargados:
                     respuesta_llm = sql_chain.invoke({"pregunta": prompt}).strip()
                     respuesta_llm = respuesta_llm.replace("```json", "").replace("```sql", "").replace("```", "").strip()
                     
-                    # Parseamos el JSON
-                    # INTERCEPTOR DE SEGURIDAD (Evita el crasheo de JSON)
-                    if "Lo siento" in respuesta_llm:
-                        query_generada = respuesta_llm
-                        tipo_grafico = "texto"
-                    else:
-                        # Si no es un error, parseamos el JSON normal
+                    # Parseador robusto (Soporta JSON y Texto plano)
+                    try:
+                        # Intentamos parsear siempre como JSON primero
                         dict_respuesta = json.loads(respuesta_llm)
                         query_generada = dict_respuesta["sql"]
                         tipo_grafico = dict_respuesta["grafico"]
+                    except Exception:
+                        # Fallback: Si el LLM devuelve SQL plano, lo atrapamos acá
+                        query_generada = respuesta_llm
+                        tipo_grafico = "texto"
                     
                     st.code(query_generada, language="sql")
 
