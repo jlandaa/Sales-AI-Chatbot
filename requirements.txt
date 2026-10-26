@@ -10,3 +10,4 @@ sentence-transformers
 streamlit>=1.32.0
 google-cloud-bigquery
 db-dtypes
+plotly==5.20.0
