@@ -102,8 +102,7 @@ def init_entorno_hibrido():
     - Usa "lineas" EXCLUSIVAMENTE si la consulta pide evolución temporal, tendencias o comportamiento a lo largo de un período de fechas.
     - Usa "dispersion" si piden comparar precios vs unidades.
     - Usa "tabla" si es un mensaje de texto de seguridad o no aplica ninguna de las anteriores.
-    - Usa "torta" si la consulta pide distribución, porcentajes o partes de un todo.
-    - Usa "anillo" si la consulta pide exactamente lo mismo pero el usuario prefiere ese formato, o si buscas mostrar distribución corporativa.
+    - Usa "torta" o "anillo" EXCLUSIVAMENTE si la consulta devuelve un formato tabular simple de DOS columnas (Columna 1: Categoría o Nombre, Columna 2: Valor numérico total). Nunca uses funciones de ventana (OVER) complejas para estos gráficos.
     """
     prompt_template = PromptTemplate.from_template(template)
 
