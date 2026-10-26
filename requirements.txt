@@ -2,11 +2,8 @@ python-dotenv
 pandas
 langchain
 langchain-community
-langchain-huggingface
 langchain-ollama
 langchain-groq
-faiss-cpu
-sentence-transformers
 streamlit>=1.32.0
 google-cloud-bigquery
 db-dtypes
