@@ -23,7 +23,7 @@ st.set_page_config(page_title="BI Sales Chatbot", page_icon="Logo_jml.png", layo
 
 # Logo en la barra lateral
 with st.sidebar:
-    st.image("Logo_jml.png", use_column_width=True)
+    st.image("Logo_jml.png", width="stretch")
     st.markdown("---")
     st.markdown("**Desarrollado por JML Analytics**")
     
@@ -153,7 +153,7 @@ if entorno == "CLOUD":
         with st.expander("👁️ Ver tabla de datos alojada en Google Cloud", expanded=False):
             st.dataframe(
                 df_bq,
-                use_container_width=True,
+                width="stretch",
                 hide_index=True # Ocultamos el índice numérico por defecto de Pandas para que se vea más limpio
             )
     except Exception as e:
@@ -316,7 +316,7 @@ if datos_cargados:
                                 df_grafico = pd.DataFrame(resultados, columns=['Categoría', 'Valor'])
                                 fig = px.pie(df_grafico, values='Valor', names='Categoría', 
                                              title="Distribución de Ventas")
-                                st.plotly_chart(fig, use_container_width=True)
+                                st.plotly_chart(fig, width="stretch")
 
                         # Gráfico de Anillo (Plotly)
                         elif tipo_grafico == "anillo" and len(resultados[0]) > 1:
@@ -331,7 +331,7 @@ if datos_cargados:
                                 fig = px.pie(df_grafico, values='Valor', names='Categoría', 
                                              hole=0.5, 
                                              title="Distribución (Anillo)")
-                                st.plotly_chart(fig, use_container_width=True)
+                                st.plotly_chart(fig, width="stretch")
                             
                         # Fallback (Tabla/Texto)
                         else:
