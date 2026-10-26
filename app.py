@@ -265,30 +265,58 @@ if datos_cargados:
 
                         # Gráfico de Líneas
                         elif tipo_grafico == "lineas" and len(resultados[0]) > 1:
-                            df_grafico = pd.DataFrame(resultados)
-                            df_grafico = df_grafico.set_index(0) 
-                            st.line_chart(df_grafico)
-                            
+                            if len(resultados) == 1:
+                                # Interceptor UX: Un solo punto en el tiempo es un KPI
+                                categoria = str(resultados[0][0])
+                                valor = resultados[0][1]
+                                valor_mostrar = f"{valor:,}".replace(",", ".") if isinstance(valor, (int, float)) else str(valor)
+                                st.metric(label=categoria, value=valor_mostrar)
+                            else:
+                                df_grafico = pd.DataFrame(resultados)
+                                df_grafico = df_grafico.set_index(0) 
+                                st.line_chart(df_grafico)
+                                
                         # Gráfico de Dispersión
                         elif tipo_grafico == "dispersion" and len(resultados[0]) > 1:
-                            df_grafico = pd.DataFrame(resultados)
-                            df_grafico = df_grafico.set_index(0)
-                            st.scatter_chart(df_grafico)
+                            if len(resultados) == 1:
+                                # Interceptor UX: Un solo punto de dispersión es un KPI
+                                categoria = str(resultados[0][0])
+                                valor = resultados[0][1]
+                                valor_mostrar = f"{valor:,}".replace(",", ".") if isinstance(valor, (int, float)) else str(valor)
+                                st.metric(label=categoria, value=valor_mostrar)
+                            else:
+                                df_grafico = pd.DataFrame(resultados)
+                                df_grafico = df_grafico.set_index(0)
+                                st.scatter_chart(df_grafico)
 
-                        # Gráfico de Torta (Plotly)
+                       # Gráfico de Torta (Plotly)
                         elif tipo_grafico == "torta" and len(resultados[0]) > 1:
-                            df_grafico = pd.DataFrame(resultados, columns=['Categoría', 'Valor'])
-                            fig = px.pie(df_grafico, values='Valor', names='Categoría', 
-                                         title="Distribución de Ventas")
-                            st.plotly_chart(fig, use_container_width=True)
+                            if len(resultados) == 1:
+                                # Interceptor UX: Un solo ítem se convierte en KPI
+                                categoria = str(resultados[0][0])
+                                valor = resultados[0][1]
+                                valor_mostrar = f"{valor:,}".replace(",", ".") if isinstance(valor, (int, float)) else str(valor)
+                                st.metric(label=categoria, value=valor_mostrar)
+                            else:
+                                df_grafico = pd.DataFrame(resultados, columns=['Categoría', 'Valor'])
+                                fig = px.pie(df_grafico, values='Valor', names='Categoría', 
+                                             title="Distribución de Ventas")
+                                st.plotly_chart(fig, use_container_width=True)
 
-                        # Gráfico de Anillo (Plotly con KPI central)
+                        # Gráfico de Anillo (Plotly)
                         elif tipo_grafico == "anillo" and len(resultados[0]) > 1:
-                            df_grafico = pd.DataFrame(resultados, columns=['Categoría', 'Valor'])
-                            fig = px.pie(df_grafico, values='Valor', names='Categoría', 
-                                         hole=0.5, # Esto crea el anillo
-                                         title="Distribución (Anillo)")
-                            st.plotly_chart(fig, use_container_width=True)
+                            if len(resultados) == 1:
+                                # Interceptor UX: Un solo ítem se convierte en KPI
+                                categoria = str(resultados[0][0])
+                                valor = resultados[0][1]
+                                valor_mostrar = f"{valor:,}".replace(",", ".") if isinstance(valor, (int, float)) else str(valor)
+                                st.metric(label=categoria, value=valor_mostrar)
+                            else:
+                                df_grafico = pd.DataFrame(resultados, columns=['Categoría', 'Valor'])
+                                fig = px.pie(df_grafico, values='Valor', names='Categoría', 
+                                             hole=0.5, 
+                                             title="Distribución (Anillo)")
+                                st.plotly_chart(fig, use_container_width=True)
                             
                         # Fallback (Tabla/Texto)
                         else:
