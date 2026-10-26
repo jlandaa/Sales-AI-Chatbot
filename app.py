@@ -199,6 +199,10 @@ if datos_cargados:
                         query_generada = respuesta_llm
                         tipo_grafico = "texto"
                     
+                    # --- INTERCEPTOR DE SEGURIDAD 1: FALSO SQL ---
+                    if not query_generada.strip().upper().startswith("SELECT"):
+                         raise ValueError("El asistente generó texto en lugar de una consulta válida.")
+                    
                     st.code(query_generada, language="sql")
 
                     # --- MAGIA HÍBRIDA AQUÍ ---
@@ -210,6 +214,11 @@ if datos_cargados:
                         cursor = db_conn.cursor()
                         cursor.execute(query_generada)
                         resultados = cursor.fetchall()
+                        
+                    # --- INTERCEPTOR DE SEGURIDAD 2: SOBRECARGA DE RAM ---
+                    if len(resultados) > 100:
+                         st.warning("⚠️ El volumen de datos es muy alto. Mostrando una muestra gráfica de los primeros 100 registros para proteger el rendimiento.")
+                         resultados = resultados[:100]
                         
                     # --- 3. PREPARAMOS EL TEXTO DE RESPALDO  ---
                     if not resultados or (len(resultados) > 0 and resultados[0][0] is None):
