@@ -187,19 +187,26 @@ if datos_cargados:
                 try:
                     start_time = time.time() # ⏱️ INICIA EL CRONÓMETRO
                     
-                    # 1. Obtenemos el texto del LLM y limpiamos marcas markdown
+                   # 1. Obtenemos la respuesta cruda del LLM
                     respuesta_llm = sql_chain.invoke({"pregunta": prompt}).strip()
-                    respuesta_llm = respuesta_llm.replace("```json", "").replace("```sql", "").replace("```", "").strip()
                     
-                    # Parseador robusto (Soporta JSON y Texto plano)
-                    try:
-                        # Intentamos parsear siempre como JSON primero
-                        dict_respuesta = json.loads(respuesta_llm)
-                        query_generada = dict_respuesta["sql"]
-                        tipo_grafico = dict_respuesta["grafico"]
-                    except Exception:
-                        # Fallback: Si el LLM devuelve SQL plano, lo atrapamos acá
-                        query_generada = respuesta_llm
+                   # Parseador robusto (Soporta JSON y Texto plano)
+                    # Buscamos dónde empieza y termina el JSON real
+                    inicio_json = respuesta_llm.find('{')
+                    fin_json = respuesta_llm.rfind('}')
+                    
+                    if inicio_json != -1 and fin_json != -1:
+                        texto_limpio = respuesta_llm[inicio_json:fin_json+1] # Extraemos solo el JSON
+                        try:
+                            dict_respuesta = json.loads(texto_limpio)
+                            query_generada = dict_respuesta.get("sql", "")
+                            tipo_grafico = dict_respuesta.get("grafico", "texto")
+                        except Exception:
+                            query_generada = respuesta_llm
+                            tipo_grafico = "texto"
+                    else:
+                        # Fallback: Si no hay llaves, asumimos que devolvió SQL crudo sin JSON
+                        query_generada = respuesta_llm.replace("```sql", "").replace("```", "").strip()
                         tipo_grafico = "texto"
                     
                     # --- INTERCEPTOR DE SEGURIDAD 1: FALSO SQL ---
