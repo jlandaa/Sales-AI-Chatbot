@@ -3,6 +3,7 @@ import pandas as pd
 import sqlite3
 import os
 import json
+import plotly.express as px
 # 1. NUEVOS IMPORTS PARA GOOGLE CLOUD
 from google.cloud import bigquery
 from google.oauth2 import service_account
@@ -101,6 +102,8 @@ def init_entorno_hibrido():
     - Usa "lineas" EXCLUSIVAMENTE si la consulta pide evolución temporal, tendencias o comportamiento a lo largo de un período de fechas.
     - Usa "dispersion" si piden comparar precios vs unidades.
     - Usa "tabla" si es un mensaje de texto de seguridad o no aplica ninguna de las anteriores.
+    - Usa "torta" si la consulta pide distribución, porcentajes o partes de un todo.
+    - Usa "anillo" si la consulta pide exactamente lo mismo pero el usuario prefiere ese formato, o si buscas mostrar distribución corporativa.
     """
     prompt_template = PromptTemplate.from_template(template)
 
@@ -272,6 +275,21 @@ if datos_cargados:
                             df_grafico = pd.DataFrame(resultados)
                             df_grafico = df_grafico.set_index(0)
                             st.scatter_chart(df_grafico)
+
+                        # Gráfico de Torta (Plotly)
+                        elif tipo_grafico == "torta" and len(resultados[0]) > 1:
+                            df_grafico = pd.DataFrame(resultados, columns=['Categoría', 'Valor'])
+                            fig = px.pie(df_grafico, values='Valor', names='Categoría', 
+                                         title="Distribución de Ventas")
+                            st.plotly_chart(fig, use_container_width=True)
+
+                        # Gráfico de Anillo (Plotly con KPI central)
+                        elif tipo_grafico == "anillo" and len(resultados[0]) > 1:
+                            df_grafico = pd.DataFrame(resultados, columns=['Categoría', 'Valor'])
+                            fig = px.pie(df_grafico, values='Valor', names='Categoría', 
+                                         hole=0.5, # Esto crea el anillo
+                                         title="Distribución (Anillo)")
+                            st.plotly_chart(fig, use_container_width=True)
                             
                         # Fallback (Tabla/Texto)
                         else:
