@@ -4,6 +4,7 @@ import sqlite3
 import os
 import json
 import plotly.express as px
+import time # Nuevo import
 # 1. NUEVOS IMPORTS PARA GOOGLE CLOUD
 from google.cloud import bigquery
 from google.oauth2 import service_account
@@ -184,6 +185,8 @@ if datos_cargados:
         with st.chat_message("assistant"):
             with st.spinner("Analizando en la base de datos..."):
                 try:
+                    start_time = time.time() # ⏱️ INICIA EL CRONÓMETRO
+                    
                     # 1. Obtenemos el texto del LLM y limpiamos marcas markdown
                     respuesta_llm = sql_chain.invoke({"pregunta": prompt}).strip()
                     respuesta_llm = respuesta_llm.replace("```json", "").replace("```sql", "").replace("```", "").strip()
@@ -225,6 +228,9 @@ if datos_cargados:
                         respuesta_texto = "No se encontraron resultados para esa consulta."
                     else:
                         respuesta_texto = "\n".join([f"- {fila[0]}: {fila[1]}" if len(fila) > 1 else f"- {fila[0]}" for fila in resultados])
+
+                    end_time = time.time() # ⏱️ FRENA EL CRONÓMETRO
+                    latencia = round(end_time - start_time, 2)
 
                     # --- 4. RENDERIZADO VISUAL EN PANTALLA ---
                     if "Lo siento" in respuesta_texto:
@@ -331,13 +337,18 @@ if datos_cargados:
                         else:
                             st.markdown(respuesta_texto)
 
+                        # Impacto visual en la UI (Telemetría para el usuario/auditor)
+                        st.caption(f"⚡ Consulta procesada en {latencia} segundos mediante {entorno}")
+
                     # 5. Guardamos en el historial para que no desaparezca al preguntar de nuevo
                     st.session_state.messages.append({
                         "role": "assistant", 
-                        "content": f"**Query ejecutada:**\n```sql\n{query_generada}\n```\n**Resultado:**\n{respuesta_texto}"
+                        "content": f"**Query ejecutada:**\n```sql\n{query_generada}\n```\n**Resultado:**\n{respuesta_texto}\n*⚡ {latencia}s vía {entorno}*"
                     })
 
                 except Exception as e:
                     error_msg = f"⚠️ Hubo un error de ejecución SQL: {e}"
                     st.error(error_msg)
                     st.session_state.messages.append({"role": "assistant", "content": error_msg})
+else:
+    st.info("👆 Por favor, sube un archivo CSV para habilitar el chat.")
