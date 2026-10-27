@@ -54,9 +54,6 @@ with st.sidebar:
 st.title("🤖 Chatbot de Ventas BI")
 st.markdown("Consulta tu reporte de ventas en lenguaje natural. El modelo generará la consulta SQL y extraerá el dato exacto.")
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
 # Cargar historial desde la base de datos al entrar
 if "messages" not in st.session_state:
     cursor = conn_history.execute("SELECT role, content FROM chat_history ORDER BY id ASC")
