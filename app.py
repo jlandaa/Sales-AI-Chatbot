@@ -22,7 +22,7 @@ st.markdown("""
 st.set_page_config(page_title="BI Sales Chatbot", page_icon="Logo_jml.png", layout="centered")
 
 
-# --- NUEVO BLOQUE: BASE DE DATOS DE HISTORIAL ---
+# --- BLOQUE 1: BASE DE DATOS DE HISTORIAL AVANZADO (Soporta JSON) ---
 def init_history_db():
     conn = sqlite3.connect("chat_history.db", check_same_thread=False)
     conn.execute('''
@@ -38,10 +38,17 @@ def init_history_db():
 
 conn_history = init_history_db()
 
-def save_message(role, content):
-    """Guarda el mensaje en RAM (session_state) y en Disco persistente (SQLite)"""
-    st.session_state.messages.append({"role": role, "content": content})
-    conn_history.execute("INSERT INTO chat_history (role, content) VALUES (?, ?)", (role, content))
+def save_message(role, content_obj):
+    """Guarda el mensaje en RAM y lo serializa a JSON para Disco (SQLite)"""
+    st.session_state.messages.append({"role": role, "content": content_obj})
+    
+    # Si el contenido es un diccionario (gráficos/metadata), lo pasamos a String JSON
+    if isinstance(content_obj, dict):
+        content_str = json.dumps(content_obj, default=str) # default=str protege contra errores de formato de fecha
+    else:
+        content_str = str(content_obj)
+        
+    conn_history.execute("INSERT INTO chat_history (role, content) VALUES (?, ?)", (role, content_str))
     conn_history.commit()
 # ------------------------------------------------
 
@@ -51,13 +58,29 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("**Desarrollado por JML Analytics**")
     
+    if st.button("🗑️ Limpiar Historial"):
+        conn_history.execute("DELETE FROM chat_history")
+        conn_history.commit()
+        st.session_state.messages = []
+        st.rerun()
+    
 st.title("🤖 Chatbot de Ventas BI")
 st.markdown("Consulta tu reporte de ventas en lenguaje natural. El modelo generará la consulta SQL y extraerá el dato exacto.")
 
-# Cargar historial desde la base de datos al entrar
+# Cargar historial desde la base de datos al entrar y DESERIALIZAR el JSON
 if "messages" not in st.session_state:
     cursor = conn_history.execute("SELECT role, content FROM chat_history ORDER BY id ASC")
-    st.session_state.messages = [{"role": row[0], "content": row[1]} for row in cursor.fetchall()]
+    st.session_state.messages = []
+    for role, content_str in cursor.fetchall():
+        try:
+            # Intentamos reconstruir el diccionario JSON si el mensaje empieza con '{'
+            if role == "assistant" and content_str.strip().startswith("{"):
+                content_obj = json.loads(content_str)
+            else:
+                content_obj = content_str
+        except Exception:
+            content_obj = content_str
+        st.session_state.messages.append({"role": role, "content": content_obj})
 
 # 2. NUEVA FUNCIÓN HÍBRIDA (LLM + Base de Datos)
 @st.cache_resource
@@ -165,6 +188,109 @@ def init_entorno_hibrido():
 
 sql_chain, db_conn, entorno = init_entorno_hibrido()
 
+# --- 3. NUEVA FUNCIÓN REUTILIZABLE: DIBUJADOR DE GRÁFICOS ---
+def mostrar_resultado_visual(query_generada, respuesta_texto, tipo_grafico, resultados, latencia, entorno):
+    """Función centralizada para renderizar UI que puede ser usada por el chat en vivo y por el historial"""
+    st.code(query_generada, language="sql")
+
+    if "Lo siento" in respuesta_texto:
+        st.warning(resultados[0][0] if resultados else respuesta_texto)
+    elif respuesta_texto == "No se encontraron resultados para esa consulta.":
+        st.warning(respuesta_texto)
+    else:
+        st.markdown("**Resultado Analítico:**")
+        
+        # NUEVO: Gráfico de Métrica (KPI) con control de tipos de datos
+        if tipo_grafico == "metrica" and resultados:
+            valor = resultados[0][0]
+            # Validamos si es un número (int o float) para formatearlo
+            if isinstance(valor, (int, float)):
+                valor_mostrar = f"{valor:,}".replace(",", ".")
+            else:
+                # Si es un texto o fecha, lo dejamos intacto
+                valor_mostrar = str(valor)
+            st.metric(label="Valor Calculado", value=valor_mostrar)
+            
+        # Gráfico de Barras (con inteligencia de UX y Finanzas)
+        elif tipo_grafico == "barras" and len(resultados[0]) > 1:
+            # Interceptor: Si hay un solo registro (ej. LIMIT 1), forzamos una Métrica
+            if len(resultados) == 1:
+                categoria = str(resultados[0][0])
+                valor = resultados[0][1]
+                # Si el valor es FLOAT (Precio o Ingresos), aplicamos formato moneda
+                if isinstance(valor, float):
+                    valor_mostrar = f"${valor:,.0f}".replace(",", ".")
+                # Si es INTEGER (Unidades vendidas), aplicamos formato numérico normal
+                elif isinstance(valor, int):
+                    valor_mostrar = f"{valor:,}".replace(",", ".")
+                else:
+                    valor_mostrar = str(valor)
+                st.metric(label=f"Top 1: {categoria}", value=valor_mostrar)
+            else:
+                # Si hay múltiples registros, dibujamos el gráfico de barras normal
+                df_grafico = pd.DataFrame(resultados)
+                df_grafico = df_grafico.set_index(0) 
+                st.bar_chart(df_grafico)
+
+        # Gráfico de Líneas
+        elif tipo_grafico == "lineas" and len(resultados[0]) > 1:
+            if len(resultados) == 1:
+                # Interceptor UX: Un solo punto en el tiempo es un KPI
+                categoria = str(resultados[0][0])
+                valor = resultados[0][1]
+                valor_mostrar = f"{valor:,}".replace(",", ".") if isinstance(valor, (int, float)) else str(valor)
+                st.metric(label=categoria, value=valor_mostrar)
+            else:
+                df_grafico = pd.DataFrame(resultados)
+                df_grafico = df_grafico.set_index(0) 
+                st.line_chart(df_grafico)
+                
+        # Gráfico de Dispersión
+        elif tipo_grafico == "dispersion" and len(resultados[0]) > 1:
+            if len(resultados) == 1:
+                # Interceptor UX: Un solo punto de dispersión es un KPI
+                categoria = str(resultados[0][0])
+                valor = resultados[0][1]
+                valor_mostrar = f"{valor:,}".replace(",", ".") if isinstance(valor, (int, float)) else str(valor)
+                st.metric(label=categoria, value=valor_mostrar)
+            else:
+                df_grafico = pd.DataFrame(resultados)
+                df_grafico = df_grafico.set_index(0)
+                st.scatter_chart(df_grafico)
+
+        # Gráfico de Torta (Plotly)
+        elif tipo_grafico == "torta" and len(resultados[0]) > 1:
+            if len(resultados) == 1:
+                # Interceptor UX: Un solo ítem se convierte en KPI
+                categoria = str(resultados[0][0])
+                valor = resultados[0][1]
+                valor_mostrar = f"{valor:,}".replace(",", ".") if isinstance(valor, (int, float)) else str(valor)
+                st.metric(label=categoria, value=valor_mostrar)
+            else:
+                df_grafico = pd.DataFrame(resultados, columns=['Categoría', 'Valor'])
+                fig = px.pie(df_grafico, values='Valor', names='Categoría', title="Distribución de Ventas")
+                st.plotly_chart(fig, width="stretch")
+
+        # Gráfico de Anillo (Plotly)
+        elif tipo_grafico == "anillo" and len(resultados[0]) > 1:
+            if len(resultados) == 1:
+                # Interceptor UX: Un solo ítem se convierte en KPI
+                categoria = str(resultados[0][0])
+                valor = resultados[0][1]
+                valor_mostrar = f"{valor:,}".replace(",", ".") if isinstance(valor, (int, float)) else str(valor)
+                st.metric(label=categoria, value=valor_mostrar)
+            else:
+                df_grafico = pd.DataFrame(resultados, columns=['Categoría', 'Valor'])
+                fig = px.pie(df_grafico, values='Valor', names='Categoría', hole=0.5, title="Distribución (Anillo)")
+                st.plotly_chart(fig, width="stretch")
+            
+        # Fallback (Tabla/Texto)
+        else:
+            st.markdown(respuesta_texto)
+
+        # Impacto visual en la UI (Telemetría para el usuario/auditor)
+        st.caption(f"⚡ Consulta procesada en {latencia} segundos mediante {entorno}")
+# --------------------------------------------------------------
 # 3. INTERFAZ DINÁMICA (Ocultar CSV en la nube)
 if entorno == "CLOUD":
     st.success("🟢 Sistema Conectado a Data Warehouse Corporativo (Google BigQuery)")
@@ -199,12 +325,20 @@ else:
 
 # 4. EJECUCIÓN DINÁMICA DE LA QUERY
 if datos_cargados:
+    
+    # --- DIBUJADO DEL HISTORIAL DE CHAT ---
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+            if isinstance(message["content"], dict):
+                # Es un objeto estructurado del asistente, usamos la función de dibujo
+                d = message["content"]
+                mostrar_resultado_visual(d["query"], d["texto"], d["grafico"], d["resultados"], d["latencia"], d["entorno"])
+            else:
+                # Es texto del usuario o un error viejo
+                st.markdown(message["content"])
 
     if prompt := st.chat_input("Ej: ¿Cuál es el segundo producto más vendido?"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        save_message("user", prompt)
         with st.chat_message("user"):
             st.markdown(prompt)
 
@@ -213,10 +347,10 @@ if datos_cargados:
                 try:
                     start_time = time.time() # ⏱️ INICIA EL CRONÓMETRO
                     
-                   # 1. Obtenemos la respuesta cruda del LLM
+                    # 1. Obtenemos la respuesta cruda del LLM
                     respuesta_llm = sql_chain.invoke({"pregunta": prompt}).strip()
                     
-                   # Parseador robusto (Soporta JSON y Texto plano)
+                    # Parseador robusto (Soporta JSON y Texto plano)
                     # Buscamos dónde empieza y termina el JSON real
                     inicio_json = respuesta_llm.find('{')
                     fin_json = respuesta_llm.rfind('}')
@@ -238,8 +372,6 @@ if datos_cargados:
                     # --- INTERCEPTOR DE SEGURIDAD 1: FALSO SQL ---
                     if not query_generada.strip().upper().startswith("SELECT"):
                          raise ValueError("El asistente generó texto en lugar de una consulta válida.")
-                    
-                    st.code(query_generada, language="sql")
 
                     # --- MAGIA HÍBRIDA AQUÍ ---
                     if entorno == "CLOUD":
@@ -265,121 +397,24 @@ if datos_cargados:
                     end_time = time.time() # ⏱️ FRENA EL CRONÓMETRO
                     latencia = round(end_time - start_time, 2)
 
-                    # --- 4. RENDERIZADO VISUAL EN PANTALLA ---
-                    if "Lo siento" in respuesta_texto:
-                        st.warning(resultados[0][0])
-                    elif respuesta_texto == "No se encontraron resultados para esa consulta.":
-                        st.warning(respuesta_texto)
-                    else:
-                        st.markdown("**Resultado Analítico:**")
-                        
-                        # NUEVO: Gráfico de Métrica (KPI) con control de tipos de datos
-                        if tipo_grafico == "metrica" and resultados:
-                            valor = resultados[0][0]
-                            
-                            # Validamos si es un número (int o float) para formatearlo
-                            if isinstance(valor, (int, float)):
-                                valor_mostrar = f"{valor:,}".replace(",", ".")
-                            else:
-                                # Si es un texto o fecha, lo dejamos intacto
-                                valor_mostrar = str(valor)
-                                
-                            st.metric(label="Valor Calculado", value=valor_mostrar)
-                            
-                        # Gráfico de Barras (con inteligencia de UX y Finanzas)
-                        elif tipo_grafico == "barras" and len(resultados[0]) > 1:
-                            
-                            # Interceptor: Si hay un solo registro (ej. LIMIT 1), forzamos una Métrica
-                            if len(resultados) == 1:
-                                categoria = str(resultados[0][0])
-                                valor = resultados[0][1]
-                                
-                                # Si el valor es FLOAT (Precio o Ingresos), aplicamos formato moneda
-                                if isinstance(valor, float):
-                                    valor_mostrar = f"${valor:,.0f}".replace(",", ".")
-                                # Si es INTEGER (Unidades vendidas), aplicamos formato numérico normal
-                                elif isinstance(valor, int):
-                                    valor_mostrar = f"{valor:,}".replace(",", ".")
-                                else:
-                                    valor_mostrar = str(valor)
-                                    
-                                st.metric(label=f"Top 1: {categoria}", value=valor_mostrar)
-                                
-                            else:
-                                # Si hay múltiples registros, dibujamos el gráfico de barras normal
-                                df_grafico = pd.DataFrame(resultados)
-                                df_grafico = df_grafico.set_index(0) 
-                                st.bar_chart(df_grafico)
+                    # --- RENDERIZADO VISUAL EN TIEMPO REAL ---
+                    mostrar_resultado_visual(query_generada, respuesta_texto, tipo_grafico, resultados, latencia, entorno)
 
-                        # Gráfico de Líneas
-                        elif tipo_grafico == "lineas" and len(resultados[0]) > 1:
-                            if len(resultados) == 1:
-                                # Interceptor UX: Un solo punto en el tiempo es un KPI
-                                categoria = str(resultados[0][0])
-                                valor = resultados[0][1]
-                                valor_mostrar = f"{valor:,}".replace(",", ".") if isinstance(valor, (int, float)) else str(valor)
-                                st.metric(label=categoria, value=valor_mostrar)
-                            else:
-                                df_grafico = pd.DataFrame(resultados)
-                                df_grafico = df_grafico.set_index(0) 
-                                st.line_chart(df_grafico)
-                                
-                        # Gráfico de Dispersión
-                        elif tipo_grafico == "dispersion" and len(resultados[0]) > 1:
-                            if len(resultados) == 1:
-                                # Interceptor UX: Un solo punto de dispersión es un KPI
-                                categoria = str(resultados[0][0])
-                                valor = resultados[0][1]
-                                valor_mostrar = f"{valor:,}".replace(",", ".") if isinstance(valor, (int, float)) else str(valor)
-                                st.metric(label=categoria, value=valor_mostrar)
-                            else:
-                                df_grafico = pd.DataFrame(resultados)
-                                df_grafico = df_grafico.set_index(0)
-                                st.scatter_chart(df_grafico)
-
-                       # Gráfico de Torta (Plotly)
-                        elif tipo_grafico == "torta" and len(resultados[0]) > 1:
-                            if len(resultados) == 1:
-                                # Interceptor UX: Un solo ítem se convierte en KPI
-                                categoria = str(resultados[0][0])
-                                valor = resultados[0][1]
-                                valor_mostrar = f"{valor:,}".replace(",", ".") if isinstance(valor, (int, float)) else str(valor)
-                                st.metric(label=categoria, value=valor_mostrar)
-                            else:
-                                df_grafico = pd.DataFrame(resultados, columns=['Categoría', 'Valor'])
-                                fig = px.pie(df_grafico, values='Valor', names='Categoría', 
-                                             title="Distribución de Ventas")
-                                st.plotly_chart(fig, width="stretch")
-
-                        # Gráfico de Anillo (Plotly)
-                        elif tipo_grafico == "anillo" and len(resultados[0]) > 1:
-                            if len(resultados) == 1:
-                                # Interceptor UX: Un solo ítem se convierte en KPI
-                                categoria = str(resultados[0][0])
-                                valor = resultados[0][1]
-                                valor_mostrar = f"{valor:,}".replace(",", ".") if isinstance(valor, (int, float)) else str(valor)
-                                st.metric(label=categoria, value=valor_mostrar)
-                            else:
-                                df_grafico = pd.DataFrame(resultados, columns=['Categoría', 'Valor'])
-                                fig = px.pie(df_grafico, values='Valor', names='Categoría', 
-                                             hole=0.5, 
-                                             title="Distribución (Anillo)")
-                                st.plotly_chart(fig, width="stretch")
-                            
-                        # Fallback (Tabla/Texto)
-                        else:
-                            st.markdown(respuesta_texto)
-
-                        # Impacto visual en la UI (Telemetría para el usuario/auditor)
-                        st.caption(f"⚡ Consulta procesada en {latencia} segundos mediante {entorno}")
-
+                    # --- GUARDADO ESTRUCTURADO (JSON) PARA SOPORTAR F5 ---
                     # 5. Guardamos en el historial para que no desaparezca al preguntar de nuevo
-                    mensaje_final = f"**Query ejecutada:**\n```sql\n{query_generada}\n```\n**Resultado:**\n{respuesta_texto}\n*⚡ {latencia}s vía {entorno}*"
-                    save_message("assistant", mensaje_final) # Guarda en RAM y Disco
+                    datos_assistant = {
+                        "query": query_generada,
+                        "texto": respuesta_texto,
+                        "grafico": tipo_grafico,
+                        "resultados": resultados,
+                        "latencia": latencia,
+                        "entorno": entorno
+                    }
+                    save_message("assistant", datos_assistant)
 
                 except Exception as e:
                     error_msg = f"⚠️ Hubo un error de ejecución SQL: {e}"
                     st.error(error_msg)
-                    save_message("assistant", error_msg) # Guarda en RAM y Disco
+                    save_message("assistant", error_msg)
 else:
     st.info("👆 Por favor, sube un archivo CSV para habilitar el chat.")
