@@ -21,6 +21,30 @@ st.markdown("""
 # Configuración de la página
 st.set_page_config(page_title="BI Sales Chatbot", page_icon="Logo_jml.png", layout="centered")
 
+
+# --- NUEVO BLOQUE: BASE DE DATOS DE HISTORIAL ---
+def init_history_db():
+    conn = sqlite3.connect("chat_history.db", check_same_thread=False)
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS chat_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            role TEXT,
+            content TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    conn.commit()
+    return conn
+
+conn_history = init_history_db()
+
+def save_message(role, content):
+    """Guarda el mensaje en RAM (session_state) y en Disco persistente (SQLite)"""
+    st.session_state.messages.append({"role": role, "content": content})
+    conn_history.execute("INSERT INTO chat_history (role, content) VALUES (?, ?)", (role, content))
+    conn_history.commit()
+# ------------------------------------------------
+
 # Logo en la barra lateral
 with st.sidebar:
     st.image("Logo_jml.png", width="stretch")
@@ -32,6 +56,11 @@ st.markdown("Consulta tu reporte de ventas en lenguaje natural. El modelo genera
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+# Cargar historial desde la base de datos al entrar
+if "messages" not in st.session_state:
+    cursor = conn_history.execute("SELECT role, content FROM chat_history ORDER BY id ASC")
+    st.session_state.messages = [{"role": row[0], "content": row[1]} for row in cursor.fetchall()]
 
 # 2. NUEVA FUNCIÓN HÍBRIDA (LLM + Base de Datos)
 @st.cache_resource
@@ -348,14 +377,12 @@ if datos_cargados:
                         st.caption(f"⚡ Consulta procesada en {latencia} segundos mediante {entorno}")
 
                     # 5. Guardamos en el historial para que no desaparezca al preguntar de nuevo
-                    st.session_state.messages.append({
-                        "role": "assistant", 
-                        "content": f"**Query ejecutada:**\n```sql\n{query_generada}\n```\n**Resultado:**\n{respuesta_texto}\n*⚡ {latencia}s vía {entorno}*"
-                    })
+                    mensaje_final = f"**Query ejecutada:**\n```sql\n{query_generada}\n```\n**Resultado:**\n{respuesta_texto}\n*⚡ {latencia}s vía {entorno}*"
+                    save_message("assistant", mensaje_final) # Guarda en RAM y Disco
 
                 except Exception as e:
                     error_msg = f"⚠️ Hubo un error de ejecución SQL: {e}"
                     st.error(error_msg)
-                    st.session_state.messages.append({"role": "assistant", "content": error_msg})
+                    save_message("assistant", error_msg) # Guarda en RAM y Disco
 else:
     st.info("👆 Por favor, sube un archivo CSV para habilitar el chat.")
