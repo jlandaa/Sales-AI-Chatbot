@@ -208,8 +208,8 @@ El sistema toma decisiones de diseño (UX) al vuelo basándose en los resultados
 
 ## 📸 APP Preview
 
-<img width="1387" height="1065" alt="Screenshot" src="https://github.com/user-attachments/assets/d2565005-9571-4978-9fc6-c661aa1aa2fb" />
 
+<img width="1919" height="1139" alt="Sales-AI" src="https://github.com/user-attachments/assets/92cfbb2b-d74d-46a5-ae97-5ffbb59c6dcf" />
 
 ---
 👨‍💻 **Juan Manuel Landa** — *Computer Engineer | Data Analyst & BI Consultant*  
