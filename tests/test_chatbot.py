@@ -1,11 +1,13 @@
 import sqlite3
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from sql_engine import (
     SQLSecurityError,
     cargar_historial_db,
+    extraer_texto_respuesta_llm,
     formatear_respuesta_texto,
     formatear_valor_kpi,
     guardar_mensaje_db,
@@ -148,3 +150,24 @@ def test_pipeline_sql_en_memoria_end_to_end() -> None:
         assert formatear_respuesta_texto(resultados) == "- Medias: 120"
     finally:
         conn.close()
+
+
+def test_parsear_respuesta_llm_claves_mayusculas_y_multilinea() -> None:
+    respuesta = '{"SQL": "SELECT Producto\nFROM ventas\nLIMIT 1;", "GRAFICO": "METRICA"}'
+    sql, grafico = parsear_respuesta_llm(respuesta)
+    assert sql.startswith("SELECT Producto")
+    assert grafico == "metrica"
+
+
+def test_extraer_texto_respuesta_llm_aimessage_y_reasoning() -> None:
+    assert extraer_texto_respuesta_llm("  SELECT 1  ") == "SELECT 1"
+
+    msg_bloques = SimpleNamespace(content=[{"type": "text", "text": '{"sql": "SELECT 1"}'}])
+    assert extraer_texto_respuesta_llm(msg_bloques) == '{"sql": "SELECT 1"}'
+
+    esperado = '{"sql": "SELECT 2", "grafico": "metrica"}'
+    msg_reasoning = SimpleNamespace(
+        content="",
+        additional_kwargs={"reasoning_content": esperado},
+    )
+    assert extraer_texto_respuesta_llm(msg_reasoning) == esperado
