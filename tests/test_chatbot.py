@@ -172,6 +172,7 @@ def test_extraer_texto_respuesta_llm_aimessage_y_reasoning() -> None:
     )
     assert extraer_texto_respuesta_llm(msg_reasoning) == esperado
 
+
 def test_validar_sql_seguro_permite_funcion_replace_y_comillas_dobles() -> None:
     query_replace = "SELECT REPLACE(Producto, 'a', 'A') FROM ventas;"
     assert validar_sql_seguro(query_replace) == query_replace[:-1]
