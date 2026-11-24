@@ -1,0 +1,43 @@
+name: CI Quality (Ruff & Pytest)
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "Readme.md"
+      - "README.md"
+      - ".streamlit/**"
+      - "Logo_jml.png"
+      - "ventas.csv"
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Instalar dependencias y herramientas de CI
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff pytest
+
+      - name: 🔍 Lint con Ruff
+        run: ruff check .
+
+      - name: 🎨 Verificar formato con Ruff
+        run: ruff format --check .
+
+      - name: 🧪 Ejecutar pruebas unitarias con Pytest
+        run: pytest -v
