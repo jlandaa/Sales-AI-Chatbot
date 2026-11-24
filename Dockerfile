@@ -1,5 +1,5 @@
 # Usar una imagen oficial de Python ligera y estable
-FROM python:3.10-slim
+FROM python:3.12-slim
 
 # Establecer el directorio de trabajo dentro del contenedor
 WORKDIR /app
@@ -11,10 +11,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Archivos de código Python (Front-end y Lógica)
+COPY sql_engine.py .
 COPY app.py .
 COPY chatbot.py .
 
-# Base de datos local
+# Base de datos local y branding
 COPY ventas.csv .
 COPY Logo_jml.png .
 
