@@ -171,3 +171,24 @@ def test_extraer_texto_respuesta_llm_aimessage_y_reasoning() -> None:
         additional_kwargs={"reasoning_content": esperado},
     )
     assert extraer_texto_respuesta_llm(msg_reasoning) == esperado
+
+def test_validar_sql_seguro_permite_funcion_replace_y_comillas_dobles() -> None:
+    query_replace = "SELECT REPLACE(Producto, 'a', 'A') FROM ventas;"
+    assert validar_sql_seguro(query_replace) == query_replace[:-1]
+
+    query_bq = 'SELECT "No se permite DROP; -- en el texto" AS Mensaje;'
+    assert validar_sql_seguro(query_bq) == query_bq[:-1]
+
+    with pytest.raises(SQLSecurityError):
+        validar_sql_seguro("REPLACE INTO ventas VALUES ('Botas', 10)")
+
+
+def test_parsear_respuesta_llm_ignora_llaves_en_razonamiento() -> None:
+    respuesta_con_ruido = (
+        "Pensando en el formato {sql, grafico} y un bloque previo "
+        '{"nota": "descartar"}. Respuesta final: '
+        '{"sql": "SELECT Producto FROM ventas LIMIT 1;", "grafico": "tabla"}'
+    )
+    sql, grafico = parsear_respuesta_llm(respuesta_con_ruido)
+    assert sql == "SELECT Producto FROM ventas LIMIT 1;"
+    assert grafico == "tabla"
