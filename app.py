@@ -78,7 +78,6 @@ if "messages" not in st.session_state:
 # 3. Inicialización híbrida (Cloud: Groq + BigQuery | Local: Ollama + SQLite)
 @st.cache_resource
 def init_entorno_hibrido():
-    from langchain_core.output_parsers import StrOutputParser
     from langchain_core.prompts import PromptTemplate
 
     template = """Eres un Data Analyst experto en bases de datos. Hoy es el año 2026.
@@ -114,14 +113,10 @@ def init_entorno_hibrido():
     SQL: SELECT Producto, Unidades_Vendidas FROM ventas ORDER BY Unidades_Vendidas DESC LIMIT 1;
 
     Usuario: ¿Cuál es el producto más vendido después de las Medias?
-    SQL: SELECT Producto FROM ventas WHERE Unidades_Vendidas < (
-        SELECT Unidades_Vendidas FROM ventas WHERE Producto = 'Medias'
-    ) ORDER BY Unidades_Vendidas DESC LIMIT 1;
+    SQL: SELECT Producto FROM ventas WHERE Unidades_Vendidas < (SELECT Unidades_Vendidas FROM ventas WHERE Producto = 'Medias') ORDER BY Unidades_Vendidas DESC LIMIT 1;
 
     Usuario: ¿Cuál es el segundo producto más vendido?
-    SQL: SELECT Producto FROM ventas WHERE Unidades_Vendidas < (
-        SELECT MAX(Unidades_Vendidas) FROM ventas
-    ) ORDER BY Unidades_Vendidas DESC LIMIT 1;
+    SQL: SELECT Producto FROM ventas WHERE Unidades_Vendidas < (SELECT MAX(Unidades_Vendidas) FROM ventas) ORDER BY Unidades_Vendidas DESC LIMIT 1;
 
     Usuario: ¿Cuántos guantes se vendieron?
     SQL: SELECT Unidades_Vendidas FROM ventas WHERE Producto = 'Guantes';
@@ -179,7 +174,7 @@ def init_entorno_hibrido():
         db_conn = sqlite3.connect(":memory:", check_same_thread=False)
         entorno_actual = "LOCAL"
 
-    chain = prompt_template | llm | StrOutputParser()
+    chain = prompt_template | llm
     return chain, db_conn, entorno_actual
 
 
@@ -311,7 +306,15 @@ if datos_cargados:
             with st.spinner("Analizando en la base de datos..."):
                 try:
                     start_time = time.time()
-                    respuesta_llm = sql_chain.invoke({"pregunta": prompt})
+                    respuesta_raw = sql_chain.invoke({"pregunta": prompt})
+                    respuesta_llm = extraer_texto_respuesta_llm(respuesta_raw)
+                    if not respuesta_llm:
+                        metadata = getattr(respuesta_raw, "response_metadata", {})
+                        finish_reason = metadata.get("finish_reason", "desconocido")
+                        raise ValueError(
+                            "El modelo LLM devolvió una respuesta vacía "
+                            f"(finish_reason={finish_reason})."
+                        )
                     query_cruda, tipo_grafico = parsear_respuesta_llm(respuesta_llm)
                     query_generada = validar_sql_seguro(query_cruda)
 
