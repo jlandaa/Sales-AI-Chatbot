@@ -10,6 +10,7 @@ from google.oauth2 import service_account
 
 from sql_engine import (
     cargar_historial_db,
+    extraer_texto_respuesta_llm,
     formatear_respuesta_texto,
     formatear_valor_kpi,
     guardar_mensaje_db,
