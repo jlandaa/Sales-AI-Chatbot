@@ -50,6 +50,34 @@ def limpiar_sql_crudo(texto: str) -> str:
     return limpio
 
 
+def extraer_texto_respuesta_llm(respuesta: object) -> str:
+    """Extrae texto desde str o AIMessage (incluyendo bloques o reasoning_content)."""
+    if isinstance(respuesta, str):
+        return respuesta.strip()
+
+    content = getattr(respuesta, "content", "")
+    if isinstance(content, str) and content.strip():
+        return content.strip()
+
+    if isinstance(content, list):
+        partes = [
+            bloque.get("text", "") if isinstance(bloque, dict) else str(bloque)
+            for bloque in content
+        ]
+        texto_bloques = "\n".join(p for p in partes if p).strip()
+        if texto_bloques:
+            return texto_bloques
+
+    additional_kwargs = getattr(respuesta, "additional_kwargs", None)
+    if isinstance(additional_kwargs, dict):
+        for clave in ("reasoning_content", "reasoning"):
+            valor = additional_kwargs.get(clave)
+            if isinstance(valor, str) and valor.strip():
+                return valor.strip()
+
+    return ""
+
+
 def parsear_respuesta_llm(respuesta_llm: str) -> tuple[str, str]:
     """Extrae (sql, tipo_grafico) desde JSON estructurado o SQL plano como fallback."""
     texto = respuesta_llm.strip()
@@ -59,13 +87,17 @@ def parsear_respuesta_llm(respuesta_llm: str) -> tuple[str, str]:
     if inicio_json != -1 and fin_json != -1 and fin_json > inicio_json:
         bloque_json = texto[inicio_json : fin_json + 1]
         try:
-            data = json.loads(bloque_json)
+            data = json.loads(bloque_json, strict=False)
             if isinstance(data, dict):
-                query = limpiar_sql_crudo(str(data.get("sql", "")))
-                grafico = str(data.get("grafico", "texto")).strip().lower()
+                data_norm = {str(k).strip().lower(): v for k, v in data.items()}
+                raw_sql = data_norm.get("sql") or data_norm.get("query") or ""
+                query = limpiar_sql_crudo(str(raw_sql)) if raw_sql else ""
+                raw_grafico = data_norm.get("grafico") or data_norm.get("chart") or "texto"
+                grafico = str(raw_grafico).strip().lower()
                 if grafico not in VALID_CHART_TYPES:
                     grafico = "texto"
-                return query, grafico
+                if query:
+                    return query, grafico
         except json.JSONDecodeError:
             pass
 
