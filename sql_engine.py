@@ -21,7 +21,7 @@ FORBIDDEN_SQL_KEYWORDS = (
     "ALTER",
     "TRUNCATE",
     "CREATE",
-    "REPLACE",
+    r"REPLACE\s+INTO",
     "MERGE",
     "GRANT",
     "REVOKE",
@@ -37,6 +37,8 @@ FORBIDDEN_SQL_PATTERN = re.compile(
     rf"\b({'|'.join(FORBIDDEN_SQL_KEYWORDS)})\b",
     re.IGNORECASE,
 )
+
+STRING_LITERAL_PATTERN = re.compile(r"'(?:\\.|''|[^'\\])*'|\"(?:\\.|\"\"|[^\"\\])*\"")
 
 
 class SQLSecurityError(ValueError):
@@ -78,35 +80,49 @@ def extraer_texto_respuesta_llm(respuesta: object) -> str:
     return ""
 
 
+def _extraer_objetos_json(texto: str) -> list[dict]:
+    """Extrae todos los objetos JSON válidos embebidos en el texto."""
+    decoder = json.JSONDecoder(strict=False)
+    objetos: list[dict] = []
+    idx = 0
+    longitud = len(texto)
+
+    while idx < longitud:
+        pos = texto.find("{", idx)
+        if pos == -1:
+            break
+        try:
+            obj, end_idx = decoder.raw_decode(texto, pos)
+            if isinstance(obj, dict):
+                objetos.append(obj)
+            idx = end_idx
+        except json.JSONDecodeError:
+            idx = pos + 1
+
+    return objetos
+
+
 def parsear_respuesta_llm(respuesta_llm: str) -> tuple[str, str]:
     """Extrae (sql, tipo_grafico) desde JSON estructurado o SQL plano como fallback."""
     texto = respuesta_llm.strip()
-    inicio_json = texto.find("{")
-    fin_json = texto.rfind("}")
 
-    if inicio_json != -1 and fin_json != -1 and fin_json > inicio_json:
-        bloque_json = texto[inicio_json : fin_json + 1]
-        try:
-            data = json.loads(bloque_json, strict=False)
-            if isinstance(data, dict):
-                data_norm = {str(k).strip().lower(): v for k, v in data.items()}
-                raw_sql = data_norm.get("sql") or data_norm.get("query") or ""
-                query = limpiar_sql_crudo(str(raw_sql)) if raw_sql else ""
-                raw_grafico = data_norm.get("grafico") or data_norm.get("chart") or "texto"
-                grafico = str(raw_grafico).strip().lower()
-                if grafico not in VALID_CHART_TYPES:
-                    grafico = "texto"
-                if query:
-                    return query, grafico
-        except json.JSONDecodeError:
-            pass
+    for data in reversed(_extraer_objetos_json(texto)):
+        data_norm = {str(k).strip().lower(): v for k, v in data.items()}
+        raw_sql = data_norm.get("sql") or data_norm.get("query") or ""
+        query = limpiar_sql_crudo(str(raw_sql)) if raw_sql else ""
+        if query:
+            raw_grafico = data_norm.get("grafico") or data_norm.get("chart") or "texto"
+            grafico = str(raw_grafico).strip().lower()
+            if grafico not in VALID_CHART_TYPES:
+                grafico = "texto"
+            return query, grafico
 
     return limpiar_sql_crudo(texto), "texto"
 
 
 def _remover_literales_texto(query: str) -> str:
-    """Reemplaza literales entre comillas simples para evitar falsos positivos en mensajes."""
-    return re.sub(r"'(?:''|[^'])*'", "''", query)
+    """Enmascara literales entre comillas simples y dobles para evitar falsos positivos."""
+    return STRING_LITERAL_PATTERN.sub("''", query)
 
 
 def validar_sql_seguro(query: str) -> str:
@@ -133,7 +149,7 @@ def validar_sql_seguro(query: str) -> str:
 
     match_prohibido = FORBIDDEN_SQL_PATTERN.search(sin_literales)
     if match_prohibido:
-        palabra = match_prohibido.group(1).upper()
+        palabra = re.sub(r"\s+", " ", match_prohibido.group(1)).upper()
         raise SQLSecurityError(f"Operación SQL no permitida detectada: {palabra}.")
 
     return limpia
@@ -177,7 +193,8 @@ def formatear_valor_kpi(valor: object, es_moneda: bool = False) -> str:
 
 def init_history_db(db_path: str = "chat_history.db") -> sqlite3.Connection:
     """Inicializa la base SQLite de historial conversacional."""
-    conn = sqlite3.connect(db_path, check_same_thread=False)
+    conn = sqlite3.connect(db_path, check_same_thread=False, timeout=30.0)
+    conn.execute("PRAGMA journal_mode=WAL")
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS chat_history (
